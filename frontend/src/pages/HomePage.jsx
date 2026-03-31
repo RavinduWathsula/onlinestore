@@ -188,12 +188,8 @@ export default function HomePage() {
       tick += 0.005;
       context.clearRect(0, 0, width, height);
 
-      const hueA = 210 + Math.sin(tick) * 10;
-      const hueB = 240 + Math.cos(tick * 0.8) * 15;
-      const bgGrad = context.createLinearGradient(0, 0, width, height);
-      bgGrad.addColorStop(0, `hsla(${hueA}, 90%, 12%, 0.22)`);
-      bgGrad.addColorStop(1, `hsla(${hueB}, 95%, 10%, 0.18)`);
-      context.fillStyle = bgGrad;
+      // Pure black background
+      context.fillStyle = '#000000';
       context.fillRect(0, 0, width, height);
 
       for (let i = 0; i < nodes.length; i += 1) {
@@ -209,7 +205,8 @@ export default function HomePage() {
         const radius = 1 + node.z * 2.6;
         context.beginPath();
         context.arc(x, y, radius, 0, Math.PI * 2);
-        context.fillStyle = `hsla(${220 + node.z * 30}, 95%, 72%, ${0.08 + node.z * 0.25})`;
+        // White dots with depth-based opacity
+        context.fillStyle = `rgba(255, 255, 255, ${0.1 + node.z * 0.35})`;
         context.fill();
 
         for (let j = i + 1; j < nodes.length; j += 1) {
@@ -218,9 +215,9 @@ export default function HomePage() {
           const oy = other.y * height;
           const dist = Math.hypot(ox - x, oy - y);
           if (dist < 170) {
-            const opacity = (1 - dist / 170) * 0.12;
-            context.strokeStyle = `rgba(120, 170, 255, ${opacity})`;
-            context.lineWidth = 0.6;
+            const opacity = (1 - dist / 170) * 0.15;
+            context.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+            context.lineWidth = 0.5;
             context.beginPath();
             context.moveTo(x, y);
             context.lineTo(ox, oy);
