@@ -14,15 +14,17 @@ export default function Navbar() {
   };
 
   const itemClass = ({ isActive }) =>
-    `rounded-xl px-3 py-2 text-sm transition ${isActive ? 'bg-white/15 text-white' : 'text-slate-200 hover:bg-white/10'}`;
+    `nav-link ${isActive ? 'nav-link--active' : ''}`;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link to="/" className="text-xl font-extrabold tracking-tight text-white">
-          NeoCart
-        </Link>
-        <nav className="flex items-center gap-1">
+    <header className="sticky top-0 z-40 px-3 pt-3">
+      <div className="mx-auto max-w-7xl">
+        <div className="nav-shell">
+          <Link to="/" className="nav-brand">
+            <span className="nav-brand__orb" aria-hidden="true" />
+            <span>NeoCart</span>
+          </Link>
+          <nav className="nav-main">
           <NavLink to="/" className={itemClass}>
             Home
           </NavLink>
@@ -44,27 +46,28 @@ export default function Navbar() {
               Admin
             </NavLink>
           )}
-        </nav>
-        <div className="flex items-center gap-2">
-          {!user ? (
-            <>
-              <Link className="btn-secondary text-sm" to="/login">
-                Login
-              </Link>
-              <Link className="btn-primary text-sm" to="/register">
-                Register
-              </Link>
-            </>
-          ) : (
-            <>
-              <span className="hidden rounded-xl border border-white/10 px-3 py-2 text-sm text-slate-200 md:block">
-                {user.name}
-              </span>
-              <button type="button" className="btn-secondary text-sm" onClick={onLogout}>
-                Logout
-              </button>
-            </>
-          )}
+          </nav>
+          <div className="nav-actions">
+            {!user ? (
+              <>
+                <Link className="btn-secondary text-sm" to="/login">
+                  Login
+                </Link>
+                <Link className="btn-primary text-sm" to="/register">
+                  Register
+                </Link>
+              </>
+            ) : (
+              <>
+                <span className="hidden rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-slate-200 md:block">
+                  {user.name}
+                </span>
+                <button type="button" className="btn-secondary text-sm" onClick={onLogout}>
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>
