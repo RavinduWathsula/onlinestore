@@ -1,0 +1,464 @@
+import { ArrowRight, Compass, Rocket, ShieldCheck, Sparkles, Star, Truck } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import ProductCard from '../components/ProductCard';
+import { productsApi } from '../services/api';
+
+const fallbackFeatured = [
+  {
+    id: 'fallback-1',
+    name: 'Nova Pulse Smartwatch',
+    category_name: 'Electronics',
+    price: 24990,
+    stock: 18,
+    image:
+      'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'fallback-2',
+    name: 'AeroTune Wireless Earbuds',
+    category_name: 'Electronics',
+    price: 12990,
+    stock: 31,
+    image:
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'fallback-3',
+    name: 'NeoFit Active Sneaker',
+    category_name: 'Fashion',
+    price: 10950,
+    stock: 26,
+    image:
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'fallback-4',
+    name: 'Aura Lamp Pro',
+    category_name: 'Home & Living',
+    price: 8990,
+    stock: 15,
+    image:
+      'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'fallback-5',
+    name: 'Vertex Urban Backpack',
+    category_name: 'Lifestyle',
+    price: 7490,
+    stock: 21,
+    image:
+      'https://images.unsplash.com/photo-1491637639811-60e2756cc1c7?auto=format&fit=crop&w=1000&q=80',
+  },
+  {
+    id: 'fallback-6',
+    name: 'Hydra Steel Bottle',
+    category_name: 'Lifestyle',
+    price: 3890,
+    stock: 42,
+    image:
+      'https://images.unsplash.com/photo-1610824352934-c10d87b700cc?auto=format&fit=crop&w=1000&q=80',
+  },
+];
+
+const categories = [
+  { name: 'Electronics', icon: Sparkles, blurb: 'Audio, gadgets, and premium accessories from top brands.' },
+  { name: 'Fashion', icon: ShieldCheck, blurb: 'Streetwear, essentials, and trend collections updated daily.' },
+  { name: 'Home & Living', icon: Truck, blurb: 'Smart decor, kitchen gear, and comfort-first home picks.' },
+  { name: 'Lifestyle', icon: Compass, blurb: 'Fitness, travel, and hobby products curated for modern living.' },
+];
+
+const testimonials = [
+  { name: 'Anjula S.', text: 'NeoCart is fast, elegant, and very easy to use. Great shopping experience.' },
+  { name: 'Ravindu W.', text: 'The checkout flow is smooth and product discovery feels premium.' },
+  { name: 'Kavindu M.', text: 'Best local marketplace design I have used so far.' },
+];
+
+const spotlightFeatures = [
+  {
+    title: 'Live deals',
+    subtitle: 'Updated every hour with trending discounts.',
+    value: 'Up to 55%',
+  },
+  {
+    title: 'Fast shipping',
+    subtitle: 'Island-wide delivery with real-time tracking.',
+    value: '24-48h',
+  },
+  {
+    title: 'Protected checkout',
+    subtitle: 'Encrypted payment and fraud detection always on.',
+    value: '100%',
+  },
+];
+
+export default function HomePage() {
+  const [featured, setFeatured] = useState([]);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const canvasRef = useRef(null);
+  const pageCanvasRef = useRef(null);
+  const displayFeatured = featured.length ? featured : fallbackFeatured;
+
+  useEffect(() => {
+    productsApi
+      .list({ page: 1, limit: 4 })
+      .then((res) => setFeatured(res.data.data || []))
+      .catch(() => setFeatured([]));
+  }, []);
+
+  useEffect(() => {
+    const canvas = pageCanvasRef.current;
+    if (!canvas) return;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    let animationFrame;
+    let width = 0;
+    let height = 0;
+    let tick = 0;
+
+    const nodes = Array.from({ length: 70 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      z: Math.random() * 0.7 + 0.3,
+      vx: (Math.random() - 0.5) * 0.00025,
+      vy: (Math.random() - 0.5) * 0.00025,
+    }));
+
+    const resize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.max(1, Math.floor(width * window.devicePixelRatio));
+      canvas.height = Math.max(1, Math.floor(height * window.devicePixelRatio));
+      context.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    };
+
+    const draw = () => {
+      tick += 0.005;
+      context.clearRect(0, 0, width, height);
+
+      const hueA = 210 + Math.sin(tick) * 10;
+      const hueB = 240 + Math.cos(tick * 0.8) * 15;
+      const bgGrad = context.createLinearGradient(0, 0, width, height);
+      bgGrad.addColorStop(0, `hsla(${hueA}, 90%, 12%, 0.22)`);
+      bgGrad.addColorStop(1, `hsla(${hueB}, 95%, 10%, 0.18)`);
+      context.fillStyle = bgGrad;
+      context.fillRect(0, 0, width, height);
+
+      for (let i = 0; i < nodes.length; i += 1) {
+        const node = nodes[i];
+        node.x += node.vx * node.z;
+        node.y += node.vy * node.z;
+
+        if (node.x < -0.05 || node.x > 1.05) node.vx *= -1;
+        if (node.y < -0.05 || node.y > 1.05) node.vy *= -1;
+
+        const x = node.x * width;
+        const y = node.y * height;
+        const radius = 1 + node.z * 2.6;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fillStyle = `hsla(${220 + node.z * 30}, 95%, 72%, ${0.08 + node.z * 0.25})`;
+        context.fill();
+
+        for (let j = i + 1; j < nodes.length; j += 1) {
+          const other = nodes[j];
+          const ox = other.x * width;
+          const oy = other.y * height;
+          const dist = Math.hypot(ox - x, oy - y);
+          if (dist < 170) {
+            const opacity = (1 - dist / 170) * 0.12;
+            context.strokeStyle = `rgba(120, 170, 255, ${opacity})`;
+            context.lineWidth = 0.6;
+            context.beginPath();
+            context.moveTo(x, y);
+            context.lineTo(ox, oy);
+            context.stroke();
+          }
+        }
+      }
+
+      animationFrame = window.requestAnimationFrame(draw);
+    };
+
+    resize();
+    draw();
+
+    window.addEventListener('resize', resize);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    let animationFrame;
+    let width = 0;
+    let height = 0;
+    const pointer = { x: 0.5, y: 0.5 };
+
+    const stars = Array.from({ length: 120 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      z: Math.random() * 0.8 + 0.2,
+      speed: Math.random() * 0.002 + 0.0006,
+      radius: Math.random() * 1.8 + 0.5,
+    }));
+
+    const resize = () => {
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = Math.max(1, Math.floor(width * window.devicePixelRatio));
+      canvas.height = Math.max(1, Math.floor(height * window.devicePixelRatio));
+      context.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    };
+
+    const onMove = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = (event.clientX - rect.left) / rect.width;
+      pointer.y = (event.clientY - rect.top) / rect.height;
+    };
+
+    const draw = () => {
+      context.clearRect(0, 0, width, height);
+
+      const gradient = context.createRadialGradient(
+        width * pointer.x,
+        height * pointer.y,
+        30,
+        width * 0.5,
+        height * 0.5,
+        Math.max(width, height)
+      );
+      gradient.addColorStop(0, 'rgba(80,140,255,0.16)');
+      gradient.addColorStop(1, 'rgba(3,7,18,0)');
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, width, height);
+
+      stars.forEach((star) => {
+        star.y += star.speed;
+        if (star.y > 1.04) {
+          star.y = -0.04;
+          star.x = Math.random();
+        }
+
+        const depth = 1 + star.z * 1.8;
+        const offsetX = (pointer.x - 0.5) * 44 * star.z;
+        const offsetY = (pointer.y - 0.5) * 28 * star.z;
+        const x = star.x * width + offsetX;
+        const y = star.y * height * depth + offsetY;
+
+        context.beginPath();
+        context.arc(x, y, star.radius * star.z, 0, Math.PI * 2);
+        context.fillStyle = `rgba(164, 194, 255, ${0.24 + star.z * 0.48})`;
+        context.fill();
+      });
+
+      animationFrame = window.requestAnimationFrame(draw);
+    };
+
+    resize();
+    draw();
+
+    window.addEventListener('resize', resize);
+    canvas.addEventListener('pointermove', onMove);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', resize);
+      canvas.removeEventListener('pointermove', onMove);
+    };
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveTestimonial((value) => (value + 1) % testimonials.length);
+    }, 3600);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="home-shell relative space-y-14">
+      <canvas ref={pageCanvasRef} className="page-canvas-3d" aria-hidden="true" />
+      <section className="home-hero relative overflow-hidden rounded-3xl border border-white/10 p-8 md:p-12">
+        <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
+        <div className="pointer-events-none absolute -left-16 top-12 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-16 bottom-10 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="relative z-10 grid gap-8 md:grid-cols-2 md:items-center">
+          <div>
+            <p className="mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-400/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-blue-200">
+              NeoCart premium marketplace
+            </p>
+            <h1 className="text-4xl font-extrabold leading-tight md:text-6xl">
+              Experience shopping in a more immersive way.
+            </h1>
+            <p className="mt-4 max-w-xl text-slate-300 md:text-lg">
+              NeoCart blends curated products, smart discovery, and secure checkout in one futuristic storefront.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/products" className="btn-primary gap-2 shadow-[0_10px_40px_rgba(37,99,235,0.3)]">
+                Start shopping <ArrowRight size={16} />
+              </Link>
+              <Link to="/register" className="btn-secondary">
+                Join NeoCart
+              </Link>
+            </div>
+            <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 text-center">
+              <div className="stat-chip">
+                <p className="text-xl font-bold">12K+</p>
+                <p className="text-xs text-slate-400">Products</p>
+              </div>
+              <div className="stat-chip">
+                <p className="text-xl font-bold">850+</p>
+                <p className="text-xs text-slate-400">Vendors</p>
+              </div>
+              <div className="stat-chip">
+                <p className="text-xl font-bold">4.9</p>
+                <p className="text-xs text-slate-400">User rating</p>
+              </div>
+            </div>
+          </div>
+          <div className="feature-panel">
+            <p className="inline-flex items-center gap-2 text-sm text-slate-300">
+              <Rocket size={14} className="text-blue-300" /> Weekly launch deals
+            </p>
+            <h3 className="mt-3 text-2xl font-bold">Curated drops from fast-growing brands</h3>
+            <p className="mt-3 text-sm text-slate-300">
+              Grab limited picks from tech, fashion, and smart home categories with secured fast delivery.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs text-slate-400">Next-day shipping</p>
+                <p className="text-lg font-semibold text-emerald-300">Available</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs text-slate-400">Secure payments</p>
+                <p className="text-lg font-semibold text-blue-300">PCI-ready</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-5">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Highlighted now</p>
+            <h2 className="text-2xl font-bold">Featured products</h2>
+            {!featured.length ? (
+              <p className="mt-2 text-sm text-slate-400">Live products are loading. Showing curated picks now.</p>
+            ) : null}
+          </div>
+          <Link to="/products" className="text-sm text-blue-300 hover:text-blue-200">
+            View all
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {displayFeatured.slice(0, 8).map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        {spotlightFeatures.map((feature) => (
+          <article key={feature.title} className="deal-card">
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">{feature.title}</p>
+            <p className="mt-2 text-3xl font-black text-white">{feature.value}</p>
+            <p className="mt-2 text-sm text-slate-300">{feature.subtitle}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="space-y-5">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Discover more</p>
+          <h2 className="text-2xl font-bold">Featured categories</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {categories.map((category) => (
+            <div key={category.name} className="category-card">
+              <category.icon className="mb-3 text-blue-300" size={22} />
+              <h3 className="text-lg font-semibold">{category.name}</h3>
+              <p className="mt-2 text-sm text-slate-400">{category.blurb}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+        <div className="glass p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Why NeoCart</p>
+          <h2 className="mt-2 text-2xl font-bold">Built for speed, trust, and better buying.</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <ShieldCheck className="mb-2 text-emerald-300" size={18} />
+              <p className="text-sm font-semibold">Protected payments</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Truck className="mb-2 text-blue-300" size={18} />
+              <p className="text-sm font-semibold">Smart logistics</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <Star className="mb-2 text-amber-300" size={18} />
+              <p className="text-sm font-semibold">Quality rated</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="glass p-6">
+          <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Customer voices</p>
+          <blockquote className="mt-3 min-h-[120px] text-lg text-slate-100 transition-all duration-500">
+            "{testimonials[activeTestimonial].text}"
+          </blockquote>
+          <p className="mt-3 text-sm text-blue-300">{testimonials[activeTestimonial].name}</p>
+          <div className="mt-5 flex gap-2">
+            {testimonials.map((item, index) => (
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => setActiveTestimonial(index)}
+                className={`h-2.5 rounded-full transition-all ${
+                  index === activeTestimonial ? 'w-8 bg-blue-300' : 'w-3 bg-white/30 hover:bg-white/50'
+                }`}
+                aria-label={`Show testimonial ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="glass overflow-hidden p-6 md:p-8">
+        <div className="mb-6 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Now trending</p>
+            <h2 className="text-2xl font-bold">Most loved this week</h2>
+          </div>
+          <Link to="/products" className="text-sm text-blue-300 hover:text-blue-200">
+            Explore catalog
+          </Link>
+        </div>
+        <div className="trend-strip">
+          {displayFeatured.slice(0, 6).map((item) => (
+            <Link to="/products" key={`trend-${item.id}`} className="trend-chip">
+              <img src={item.image} alt={item.name} className="h-12 w-12 rounded-xl object-cover" />
+              <div>
+                <p className="line-clamp-1 text-sm font-semibold text-slate-100">{item.name}</p>
+                <p className="text-xs text-blue-200">LKR {Number(item.price).toFixed(2)}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+    </div>
+  );
+}

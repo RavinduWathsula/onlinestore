@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: Manrope, sans-serif;
+  min-height: 100vh;
+  background: #020617;
+}
+
+.page-bg {
+  background-image: radial-gradient(1200px 600px at 10% -10%, rgba(37, 99, 235, 0.24), transparent),
+    radial-gradient(900px 400px at 90% 0%, rgba(168, 85, 247, 0.2), transparent),
+    linear-gradient(160deg, #020617 0%, #030712 35%, #020617 100%);
+}
+
+.glass {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-glass;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-5 py-3 font-semibold text-white transition hover:scale-[1.02] hover:from-blue-400 hover:to-indigo-400;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/5 px-5 py-3 font-semibold text-slate-100 transition hover:bg-white/10;
+}
+
+.input-field {
+  @apply w-full rounded-2xl border border-white/15 bg-slate-900/70 px-4 py-3 text-white placeholder:text-slate-400 outline-none transition focus:border-blue-400;
+}
+
+.home-hero {
+  background: linear-gradient(155deg, rgba(15, 23, 42, 0.85) 5%, rgba(2, 6, 23, 0.85) 55%, rgba(15, 23, 42, 0.8) 100%);
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.55);
+}
+
+.home-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.page-canvas-3d {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.feature-panel {
+  @apply glass;
+  transform-style: preserve-3d;
+  animation: floatCard 8s ease-in-out infinite;
+}
+
+.stat-chip {
+  @apply rounded-2xl border border-white/10 bg-white/5 px-4 py-3;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px rgba(15, 23, 42, 0.3);
+}
+
+.category-card {
+  @apply glass p-5 transition duration-300;
+  transform: perspective(900px) translateZ(0);
+}
+
+.category-card:hover {
+  transform: perspective(900px) translateY(-5px) rotateX(3deg);
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.5);
+}
+
+.deal-card {
+  @apply rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-blue-950/40 to-indigo-950/50 p-5;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 34px rgba(2, 6, 23, 0.45);
+  transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+}
+
+.deal-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 1rem;
+  background: conic-gradient(
+    from 20deg,
+    rgba(59, 130, 246, 0.16),
+    rgba(56, 189, 248, 0.14),
+    rgba(99, 102, 241, 0.18),
+    rgba(14, 165, 233, 0.14),
+    rgba(59, 130, 246, 0.16)
+  );
+  filter: blur(14px);
+  opacity: 0.45;
+  z-index: 0;
+  animation: hueCycle 8s linear infinite;
+}
+
+.deal-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(147, 197, 253, 0.08), rgba(99, 102, 241, 0.03), transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.deal-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.deal-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(125, 211, 252, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 22px 44px rgba(2, 6, 23, 0.6);
+}
+
+.trend-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.trend-chip {
+  @apply flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 transition;
+}
+
+.trend-chip:hover {
+  transform: translateY(-3px) scale(1.01);
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(147, 197, 253, 0.45);
+}
+
+@keyframes floatCard {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes hueCycle {
+  0% {
+    filter: blur(14px) hue-rotate(0deg);
+  }
+  50% {
+    filter: blur(18px) hue-rotate(28deg);
+  }
+  100% {
+    filter: blur(14px) hue-rotate(0deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .feature-panel {
+    animation: none;
+  }
+
+  .home-hero {
+    border-radius: 1.1rem;
+  }
+
+  .page-canvas-3d {
+    opacity: 0.5;
+  }
+}
