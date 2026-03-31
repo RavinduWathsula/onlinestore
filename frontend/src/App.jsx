@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
@@ -26,9 +26,12 @@ function AdminRoute({ children }) {
 }
 
 export default function App() {
+  const location = useLocation();
+  const hideNavbar = location.pathname === '/login' || location.pathname === '/register';
+
   return (
     <div className="page-bg min-h-screen text-white">
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       <main className="mx-auto min-h-[calc(100vh-170px)] max-w-7xl px-4 py-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
