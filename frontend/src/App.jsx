@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import LoginPage from './pages/LoginPage';
@@ -70,7 +69,6 @@ export default function App() {
           />
         </Routes>
       </main>
-      <Footer />
     </div>
   );
 }

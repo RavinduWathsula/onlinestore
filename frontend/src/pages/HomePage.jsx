@@ -62,10 +62,30 @@ const fallbackFeatured = [
 ];
 
 const categories = [
-  { name: 'Electronics', icon: Sparkles, blurb: 'Audio, gadgets, and premium accessories from top brands.' },
-  { name: 'Fashion', icon: ShieldCheck, blurb: 'Streetwear, essentials, and trend collections updated daily.' },
-  { name: 'Home & Living', icon: Truck, blurb: 'Smart decor, kitchen gear, and comfort-first home picks.' },
-  { name: 'Lifestyle', icon: Compass, blurb: 'Fitness, travel, and hobby products curated for modern living.' },
+  {
+    name: 'Electronics',
+    icon: Sparkles,
+    blurb: 'Audio, gadgets, and premium accessories from top brands.',
+    tone: 'category-card--cyan',
+  },
+  {
+    name: 'Fashion',
+    icon: ShieldCheck,
+    blurb: 'Streetwear, essentials, and trend collections updated daily.',
+    tone: 'category-card--violet',
+  },
+  {
+    name: 'Home & Living',
+    icon: Truck,
+    blurb: 'Smart decor, kitchen gear, and comfort-first home picks.',
+    tone: 'category-card--teal',
+  },
+  {
+    name: 'Lifestyle',
+    icon: Compass,
+    blurb: 'Fitness, travel, and hobby products curated for modern living.',
+    tone: 'category-card--rose',
+  },
 ];
 
 const testimonials = [
@@ -74,21 +94,51 @@ const testimonials = [
   { name: 'Kavindu M.', text: 'Best local marketplace design I have used so far.' },
 ];
 
+const customerReviews = [
+  {
+    name: 'Nethmi K.',
+    location: 'Colombo',
+    rating: 5,
+    title: 'Super fast delivery',
+    text: 'Ordered at night and got my package the next day. Product quality was exactly as shown.',
+    tone: 'review-card--aqua',
+  },
+  {
+    name: 'Isuru P.',
+    location: 'Kandy',
+    rating: 5,
+    title: 'Checkout is really smooth',
+    text: 'I liked how simple the payment flow is. Discounts and coupons worked without any issue.',
+    tone: 'review-card--violet',
+  },
+  {
+    name: 'Hashini F.',
+    location: 'Galle',
+    rating: 4,
+    title: 'Great support and tracking',
+    text: 'Support team replied quickly and order tracking updates were clear from start to finish.',
+    tone: 'review-card--blue',
+  },
+];
+
 const spotlightFeatures = [
   {
     title: 'Live deals',
     subtitle: 'Updated every hour with trending discounts.',
     value: 'Up to 55%',
+    tone: 'deal-card--blue',
   },
   {
     title: 'Fast shipping',
     subtitle: 'Island-wide delivery with real-time tracking.',
     value: '24-48h',
+    tone: 'deal-card--aqua',
   },
   {
     title: 'Protected checkout',
     subtitle: 'Encrypted payment and fraud detection always on.',
     value: '100%',
+    tone: 'deal-card--violet',
   },
 ];
 
@@ -370,7 +420,7 @@ export default function HomePage() {
 
       <section className="grid gap-4 md:grid-cols-3">
         {spotlightFeatures.map((feature) => (
-          <article key={feature.title} className="deal-card">
+          <article key={feature.title} className={`deal-card ${feature.tone}`}>
             <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">{feature.title}</p>
             <p className="mt-2 text-3xl font-black text-white">{feature.value}</p>
             <p className="mt-2 text-sm text-slate-300">{feature.subtitle}</p>
@@ -385,7 +435,7 @@ export default function HomePage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {categories.map((category) => (
-            <div key={category.name} className="category-card">
+            <div key={category.name} className={`category-card ${category.tone}`}>
               <category.icon className="mb-3 text-blue-300" size={22} />
               <h3 className="text-lg font-semibold">{category.name}</h3>
               <p className="mt-2 text-sm text-slate-400">{category.blurb}</p>
@@ -437,24 +487,40 @@ export default function HomePage() {
       </section>
 
       <section className="glass overflow-hidden p-6 md:p-8">
-        <div className="mb-6 flex items-end justify-between gap-3">
+        <div className="review-head">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Now trending</p>
-            <h2 className="text-2xl font-bold">Most loved this week</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Trusted by shoppers</p>
+            <h2 className="text-2xl font-bold">Customer reviews and ratings</h2>
           </div>
-          <Link to="/products" className="text-sm text-blue-300 hover:text-blue-200">
-            Explore catalog
-          </Link>
+          <div className="review-score">
+            <p className="text-3xl font-black text-white">4.9/5</p>
+            <div className="review-stars" aria-label="Average rating 4.9 out of 5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star key={`avg-star-${star}`} size={16} className="fill-amber-300 text-amber-300" />
+              ))}
+            </div>
+            <p className="text-xs text-blue-200">Based on 2,400+ verified purchases</p>
+          </div>
         </div>
-        <div className="trend-strip">
-          {displayFeatured.slice(0, 6).map((item) => (
-            <Link to="/products" key={`trend-${item.id}`} className="trend-chip">
-              <img src={item.image} alt={item.name} className="h-12 w-12 rounded-xl object-cover" />
-              <div>
-                <p className="line-clamp-1 text-sm font-semibold text-slate-100">{item.name}</p>
-                <p className="text-xs text-blue-200">LKR {Number(item.price).toFixed(2)}</p>
+
+        <div className="review-grid">
+          {customerReviews.map((review) => (
+            <article key={review.name} className={`review-card ${review.tone}`}>
+              <div className="review-stars" aria-label={`${review.rating} star rating`}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={`${review.name}-star-${star}`}
+                    size={15}
+                    className={star <= review.rating ? 'fill-amber-300 text-amber-300' : 'text-slate-500'}
+                  />
+                ))}
               </div>
-            </Link>
+              <h3 className="mt-3 text-lg font-semibold">{review.title}</h3>
+              <p className="mt-2 text-sm text-slate-300">{review.text}</p>
+              <p className="mt-4 text-xs uppercase tracking-[0.14em] text-blue-200/90">
+                {review.name} • {review.location}
+              </p>
+            </article>
           ))}
         </div>
       </section>
