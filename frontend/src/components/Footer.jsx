@@ -1,6 +1,10 @@
 import { Facebook, Instagram, Linkedin, Twitter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+function handleNavClick() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 const links = [
   { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
   { icon: Twitter, href: 'https://x.com', label: 'X' },
@@ -24,7 +28,7 @@ const supportLinks = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-slate-950/85 py-10">
+    <footer className="relative z-30 border-t border-white/10 bg-slate-950/85 py-10 pointer-events-auto">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 md:grid-cols-4 md:items-start">
         <div>
           <h4 className="text-lg font-bold">NeoCart</h4>
@@ -50,7 +54,7 @@ export default function Footer() {
           <ul className="mt-3 space-y-2 text-sm text-slate-400">
             {quickLinks.map((item) => (
               <li key={item.label}>
-                <Link to={item.to} className="transition hover:text-white">
+                <Link to={item.to} onClick={handleNavClick} className="transition hover:text-white">
                   {item.label}
                 </Link>
               </li>
@@ -64,7 +68,7 @@ export default function Footer() {
             {supportLinks.map((item) => (
               <li key={item.label}>
                 {item.to ? (
-                  <Link to={item.to} className="transition hover:text-white">
+                  <Link to={item.to} onClick={handleNavClick} className="transition hover:text-white">
                     {item.label}
                   </Link>
                 ) : (

@@ -33,13 +33,13 @@ export default function App() {
     location.pathname.startsWith('/login') || location.pathname.startsWith('/register');
 
   return (
-    <div className="page-bg min-h-screen text-white">
+    <div className="page-bg relative min-h-screen text-white">
       <Navbar />
       <main
         className={
           isAuthPage
-            ? 'min-h-[calc(100vh-170px)] p-0'
-            : 'mx-auto min-h-[calc(100vh-170px)] max-w-7xl px-4 py-8'
+            ? 'relative z-10 min-h-[calc(100vh-170px)] p-0'
+            : 'relative z-10 mx-auto min-h-[calc(100vh-170px)] max-w-7xl px-4 py-8'
         }
       >
         <Routes>
