@@ -23,9 +23,10 @@ export default function LoginPage() {
     setErrors({});
     setLoading(true);
     try {
-      await login(form);
+      const res = await login(form);
+      const nextUser = res?.data?.user;
       showToast('Welcome back');
-      navigate('/home');
+      navigate(nextUser?.role === 'admin' ? '/admin' : '/home');
     } catch (error) {
       const response = error?.response?.data;
       setErrors(response?.errors || { form: response?.message || 'Login failed' });

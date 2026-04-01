@@ -272,23 +272,28 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <section className="glass p-6">
-        <h1 className="text-3xl font-bold">Secure Checkout</h1>
-        <p className="mt-2 text-slate-300">Choose payment type, complete payment securely, and download your creative receipt.</p>
+    <div className="checkout-shell mx-auto max-w-6xl space-y-6">
+      <section className="checkout-hero glass p-6">
+        <span className="checkout-hero__badge">NEOCART CHECKOUT</span>
+        <h1 className="checkout-hero__title text-3xl font-bold">Secure Checkout Experience</h1>
+        <p className="mt-2 text-slate-300">Choose your payment style, apply collected coupons, and finish your order with a premium billing flow.</p>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="glass p-6">
+        <div className="checkout-card glass p-6">
           <h2 className="text-xl font-semibold">Order Summary</h2>
           {cartItems.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-white/20 bg-white/5 p-5 text-sm text-slate-400">
-              No items in cart. <Link to="/products" className="text-blue-300 underline">Browse products</Link>
+            <div className="checkout-empty mt-4 p-5 text-sm text-slate-300">
+              <div className="checkout-empty__orb" aria-hidden="true" />
+              <p className="checkout-empty__eyebrow">ORDER SUMMARY</p>
+              <h3 className="checkout-empty__title">No items in your cart</h3>
+              <p className="checkout-empty__subtitle">Your payment is complete and cart is now clean. Discover fresh drops and add your next favorite items.</p>
+              <Link to="/products" className="checkout-empty__link">Browse products</Link>
             </div>
           ) : (
             <div className="mt-4 space-y-3">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div key={item.id} className="checkout-item-card flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
                   <img
                     src={item.image || 'https://images.unsplash.com/photo-1511385348-a52b4a160dc2?auto=format&fit=crop&w=200&q=80'}
                     alt={item.name}
@@ -304,7 +309,7 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="checkout-totals mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Items</span>
               <span>{summary.count}</span>
@@ -324,7 +329,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="glass p-6">
+        <div className="checkout-card checkout-payment glass p-6">
           <h2 className="text-xl font-semibold">Payment</h2>
           <div className="mt-4">
             <label className="mb-2 block text-sm text-slate-300">Choose coupon (optional)</label>
@@ -346,11 +351,11 @@ export default function CheckoutPage() {
           </div>
 
           <div className="mt-4 space-y-3">
-            <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
+            <label className="checkout-pay-option flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
               <span>Cash on Delivery</span>
               <input type="radio" name="payment" checked={paymentMethod === 'cash_on_delivery'} onChange={() => setPaymentMethod('cash_on_delivery')} />
             </label>
-            <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
+            <label className="checkout-pay-option flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
               <span>Card Payment (Sri Lanka)</span>
               <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
             </label>
@@ -407,14 +412,14 @@ export default function CheckoutPage() {
       </section>
 
       {smsMessage && (
-        <section className="glass border border-emerald-400/30 p-6">
+        <section className="checkout-message glass border border-emerald-400/30 p-6">
           <h3 className="text-lg font-semibold text-emerald-300">Phone Message</h3>
           <p className="mt-2 text-slate-200">{smsMessage}</p>
         </section>
       )}
 
       {invoice && (
-        <section className="glass p-6">
+        <section className="checkout-card glass p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h3 className="text-2xl font-bold">Payment Bill</h3>

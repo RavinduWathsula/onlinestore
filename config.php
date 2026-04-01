@@ -13,6 +13,9 @@ const SMS_TWILIO_AUTH_TOKEN = '';
 const SMS_TWILIO_FROM = '';
 const OTP_TTL_MINUTES = 5;
 
+const ADMIN_PANEL_EMAIL = 'admin@neocart.lk';
+const ADMIN_PANEL_PASSWORD = 'Admin@12345';
+
 function config_env(string $key, string $fallback = ''): string
 {
 	$value = getenv($key);

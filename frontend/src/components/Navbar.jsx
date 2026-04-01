@@ -37,9 +37,11 @@ export default function Navbar() {
           <NavLink to="/" className={itemClass}>
             Home
           </NavLink>
-          <NavLink to="/products" className={itemClass}>
-            Products
-          </NavLink>
+          {!isAdmin && (
+            <NavLink to="/products" className={itemClass}>
+              Products
+            </NavLink>
+          )}
           {user && (
             <>
               <NavLink to="/dashboard" className={itemClass}>

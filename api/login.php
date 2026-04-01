@@ -14,6 +14,26 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $password === '') {
     respond(['ok' => false, 'message' => 'Invalid credentials'], 422);
 }
 
+$adminEmail = trim((string) ADMIN_PANEL_EMAIL);
+$adminPassword = (string) ADMIN_PANEL_PASSWORD;
+
+if ($adminEmail !== '' && $adminPassword !== '' && strcasecmp($email, $adminEmail) === 0 && hash_equals($adminPassword, $password)) {
+    $_SESSION['user'] = [
+        'id' => 0,
+        'name' => 'Administrator',
+        'email' => $adminEmail,
+        'role' => 'admin',
+        'phone' => '',
+        'address' => '',
+    ];
+
+    respond([
+        'ok' => true,
+        'message' => 'Admin login successful',
+        'user' => sanitize_user($_SESSION['user']),
+    ]);
+}
+
 $stmt = db()->prepare('SELECT id, name, email, password, role, phone, address FROM users WHERE email = ? LIMIT 1');
 $stmt->bind_param('s', $email);
 $stmt->execute();

@@ -14,33 +14,57 @@ import AdminPage from './admin/AdminPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import { useAuth } from './context/AuthContext';
 
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, ready } = useAuth();
+function GuestRoute({ children }) {
+  const { ready, isAuthenticated, isAdmin } = useAuth();
+  if (!ready) return <LoadingSpinner />;
+  if (isAuthenticated) {
+    return <Navigate to={isAdmin ? '/admin' : '/home'} replace />;
+  }
+  return children;
+}
+
+function CustomerRoute({ children }) {
+  const { ready, isAuthenticated, isAdmin } = useAuth();
   if (!ready) return <LoadingSpinner />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
+  return children;
+}
+
+function StoreRoute({ children }) {
+  const { ready, isAdmin } = useAuth();
+  if (!ready) return <LoadingSpinner />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
   return children;
 }
 
 function AdminRoute({ children }) {
-  const { isAdmin, ready } = useAuth();
+  const { ready, isAuthenticated, isAdmin } = useAuth();
   if (!ready) return <LoadingSpinner />;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/home" replace />;
   return children;
 }
 
 export default function App() {
   const location = useLocation();
-  const isAuthPage =
-    location.pathname.startsWith('/login') || location.pathname.startsWith('/register');
+  const { ready, isAdmin } = useAuth();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAdminPage = location.pathname.startsWith('/admin');
 
-  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  if (!ready) {
+    return <LoadingSpinner />;
+  }
+
+  const showStoreLayout = !isAdminPage;
+
   return (
     <div className="page-bg relative min-h-screen text-white">
-      <Navbar />
+      {showStoreLayout ? <Navbar /> : null}
       <main
         className={
           isAuthPage
@@ -49,34 +73,65 @@ export default function App() {
         }
       >
         <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/products/:id" element={<ProductDetailsPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<Navigate to={isAdmin ? '/admin' : '/home'} replace />} />
+          <Route
+            path="/home"
+            element={<HomePage />}
+          />
+          <Route
+            path="/products"
+            element={
+              <StoreRoute>
+                <ProductsPage />
+              </StoreRoute>
+            }
+          />
+          <Route
+            path="/products/:id"
+            element={
+              <StoreRoute>
+                <ProductDetailsPage />
+              </StoreRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <GuestRoute>
+                <LoginPage />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <GuestRoute>
+                <RegisterPage />
+              </GuestRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <CustomerRoute>
                 <DashboardPage />
-              </ProtectedRoute>
+              </CustomerRoute>
             }
           />
           <Route
             path="/cart"
             element={
-              <ProtectedRoute>
+              <CustomerRoute>
                 <CartPage />
-              </ProtectedRoute>
+              </CustomerRoute>
             }
           />
           <Route
             path="/checkout"
             element={
-              <ProtectedRoute>
+              <CustomerRoute>
                 <CheckoutPage />
-              </ProtectedRoute>
+              </CustomerRoute>
             }
           />
           <Route
@@ -87,9 +142,10 @@ export default function App() {
               </AdminRoute>
             }
           />
+          <Route path="*" element={<Navigate to={isAdmin ? '/admin' : '/home'} replace />} />
         </Routes>
       </main>
-      <Footer />
+      {showStoreLayout ? <Footer /> : null}
     </div>
   );
 }

@@ -11,6 +11,7 @@ const api = axios.create({
 export const authApi = {
   session: () => api.get('/session.php'),
   login: (payload) => api.post('/login.php', payload),
+  adminLogin: (payload) => api.post('/admin_login.php', payload),
   register: (payload) => api.post('/register.php', payload),
   logout: () => api.post('/logout.php'),
   profile: () => api.get('/profile.php'),

@@ -53,6 +53,14 @@ export function AuthProvider({ children }) {
     return res;
   };
 
+  const adminLogin = async (payload) => {
+    const res = await authApi.adminLogin(payload);
+    const nextUser = res.data.user;
+    setUser(nextUser);
+    setCoupons(loadCoupons(nextUser));
+    return res;
+  };
+
   const register = async (payload) => {
     const res = await authApi.register(payload);
     const nextUser = res.data.user;
@@ -102,6 +110,7 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(user),
       isAdmin: user?.role === 'admin',
       login,
+      adminLogin,
       register,
       logout,
       updateProfile,
