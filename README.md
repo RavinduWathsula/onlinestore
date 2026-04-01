@@ -52,7 +52,7 @@ npm run dev
 ```
 
 Then open:
-- http://localhost:5173
+- http://localhost:5181
 
 Vite dev server proxies /api calls to http://localhost/NovaStore.
 
@@ -64,7 +64,7 @@ Use the Vite URL above for the React frontend.
 - PHP homepage works: http://localhost/NovaStore/index.php
 - API health check: http://localhost/NovaStore/api/session.php
 - If API returns database errors, import sql/schema.sql and verify config.php credentials
-- If React page is blank, run frontend with npm run dev and open http://localhost:5173
+- If React page is blank, run frontend with npm run dev and open http://localhost:5181
 
 ## 5) API Endpoints
 

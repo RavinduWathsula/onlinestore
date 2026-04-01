@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/index-V39CQ3Bl.js"></script>
+    <script type="module" crossorigin src="/assets/index-B3GG-6ka.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-WRqci0NK.css">
   </head>
   <body class="text-white bg-slate-950">
@@ -24,6 +24,16 @@
           </ol>
         </section>
       </main>
-    </div>
+    </div>
+    <script>
+      (function () {
+        if (location.hash || location.pathname === '/' || location.pathname.endsWith('.html')) {
+          return;
+        }
+
+        var nextUrl = '/#' + location.pathname.replace(/\/$/, '') + location.search + location.hash;
+        location.replace(nextUrl);
+      })();
+    </script>
   </body>
 </html>
