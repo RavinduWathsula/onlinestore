@@ -15,6 +15,16 @@ const initialForm = {
   category_id: '0',
 };
 
+const initialEditForm = {
+  id: 0,
+  name: '',
+  price: '',
+  stock: '',
+  description: '',
+  image: '',
+  category_id: '0',
+};
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -27,6 +37,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState(initialEditForm);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const loadAll = async () => {
     setLoading(true);
@@ -73,10 +86,10 @@ export default function AdminPage() {
   };
 
   const deleteProduct = async (id) => {
-    if (!window.confirm('Delete this product?')) return;
     try {
       await productsApi.remove(id);
       showToast('Product removed');
+      setDeleteTarget(null);
       loadAll();
     } catch {
       showToast('Could not delete product', 'error');
@@ -110,27 +123,49 @@ export default function AdminPage() {
     }
   };
 
-  const editProduct = async (product) => {
-    const name = window.prompt('Product name', product.name);
-    if (!name) return;
+  const openEditProduct = (product) => {
+    setEditForm({
+      id: Number(product.id),
+      name: product.name || '',
+      price: String(product.price ?? ''),
+      stock: String(product.stock ?? ''),
+      description: product.description || '',
+      image: product.image || '',
+      category_id: String(product.category_id || 0),
+    });
+    setEditOpen(true);
+  };
 
-    const priceInput = window.prompt('Product price', String(product.price));
-    if (!priceInput) return;
-
-    const stockInput = window.prompt('Product stock', String(product.stock));
-    if (!stockInput) return;
-
+  const saveEditedProduct = async (e) => {
+    e.preventDefault();
+    const name = editForm.name.trim();
+    const price = Number(editForm.price);
+    const stock = Number(editForm.stock);
+    if (!name) {
+      showToast('Product name is required', 'error');
+      return;
+    }
+    if (!Number.isFinite(price) || price <= 0) {
+      showToast('Enter a valid product price', 'error');
+      return;
+    }
+    if (!Number.isFinite(stock) || stock < 0) {
+      showToast('Enter a valid stock amount', 'error');
+      return;
+    }
     try {
       await productsApi.update({
-        id: product.id,
-        category_id: Number(product.category_id || 0),
+        id: Number(editForm.id),
+        category_id: Number(editForm.category_id || 0),
         name,
-        price: Number(priceInput),
-        stock: Number(stockInput),
-        description: product.description || '',
-        image: product.image || '',
+        price,
+        stock: Math.floor(stock),
+        description: editForm.description || '',
+        image: editForm.image || '',
       });
       showToast('Product updated');
+      setEditOpen(false);
+      setEditForm(initialEditForm);
       loadAll();
     } catch {
       showToast('Could not update product', 'error');
@@ -163,6 +198,21 @@ export default function AdminPage() {
     .sort(([a], [b]) => a.localeCompare(b))
     .slice(-7);
   const maxDayAmount = chartRows.reduce((max, [, amount]) => Math.max(max, amount), 1);
+  const minDayAmount = chartRows.reduce((min, [, amount]) => Math.min(min, amount), Number.POSITIVE_INFINITY);
+  const chartSpan = maxDayAmount - (Number.isFinite(minDayAmount) ? minDayAmount : 0) || 1;
+  const linePoints = chartRows
+    .map(([, amount], index) => {
+      const x = chartRows.length === 1 ? 50 : (index / (chartRows.length - 1)) * 100;
+      const normalized = (amount - (Number.isFinite(minDayAmount) ? minDayAmount : 0)) / chartSpan;
+      const y = 88 - normalized * 64;
+      return `${x},${y}`;
+    })
+    .join(' ');
+  const areaPoints = chartRows.length > 0 ? `0,94 ${linePoints} 100,94` : '';
+  const lastDayAmount = chartRows.length ? chartRows[chartRows.length - 1][1] : 0;
+  const prevDayAmount = chartRows.length > 1 ? chartRows[chartRows.length - 2][1] : 0;
+  const trendDiff = lastDayAmount - prevDayAmount;
+  const trendPercent = prevDayAmount > 0 ? (trendDiff / prevDayAmount) * 100 : 0;
   const adminUser = users.find((user) => user.role === 'admin');
   const customerUsers = users.filter((user) => user.role !== 'admin');
   const recentOrders = orders.slice(0, 7);
@@ -306,12 +356,15 @@ export default function AdminPage() {
           ) : null}
 
           {activeSection === 'customers' ? (
-            <section className="glass p-6">
-              <h2 className="text-xl font-bold">Customers</h2>
+            <section className="admin-panel admin-panel--customers">
+              <div className="admin-panel__head">
+                <h2 className="admin-panel__title">Customers</h2>
+                <p className="admin-panel__meta">Total customers: {customerUsers.length}</p>
+              </div>
               <div className="mt-4 overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
+                <table className="admin-data-table">
                   <thead>
-                    <tr className="border-b border-white/10 text-slate-400">
+                    <tr>
                       <th className="py-2">ID</th>
                       <th className="py-2">Name</th>
                       <th className="py-2">Email</th>
@@ -320,7 +373,7 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {customerUsers.map((user) => (
-                      <tr key={user.id} className="border-b border-white/5">
+                      <tr key={user.id}>
                         <td className="py-2">{user.id}</td>
                         <td className="py-2">{user.name}</td>
                         <td className="py-2">{user.email}</td>
@@ -334,15 +387,17 @@ export default function AdminPage() {
           ) : null}
 
           {activeSection === 'messages' ? (
-            <section className="glass p-6">
-              <h2 className="text-xl font-bold">Customer messages</h2>
-              <p className="mt-2 text-sm text-slate-400">This panel highlights active customers for follow-up.</p>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <section className="admin-panel admin-panel--messages">
+              <div className="admin-panel__head">
+                <h2 className="admin-panel__title">Customer Messages</h2>
+                <p className="admin-panel__meta">Auto-prioritized support queue</p>
+              </div>
+              <div className="admin-message-grid">
                 {customerUsers.slice(0, 8).map((user) => (
                   <article key={user.id} className="admin-message-card">
-                    <p className="font-semibold text-slate-100">{user.name}</p>
-                    <p className="text-sm text-slate-400">{user.email}</p>
-                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-sky-200">Customer support request open</p>
+                    <p className="admin-message-card__name">{user.name}</p>
+                    <p className="admin-message-card__email">{user.email}</p>
+                    <p className="admin-message-card__tag">Customer support request open</p>
                   </article>
                 ))}
               </div>
@@ -351,8 +406,11 @@ export default function AdminPage() {
 
           {activeSection === 'products' ? (
             <>
-              <section className="glass p-6">
-                <h2 className="text-xl font-bold">Add product</h2>
+              <section className="admin-panel admin-panel--products">
+                <div className="admin-panel__head">
+                  <h2 className="admin-panel__title">Add Product</h2>
+                  <p className="admin-panel__meta">Create new stock entries for your storefront</p>
+                </div>
                 <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={addProduct}>
                   <input className="input-field" placeholder="Name" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} required />
                   <input className="input-field" placeholder="Price" type="number" step="0.01" value={form.price} onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))} required />
@@ -369,12 +427,15 @@ export default function AdminPage() {
                 </form>
               </section>
 
-              <section className="glass p-6">
-                <h2 className="text-xl font-bold">Products</h2>
+              <section className="admin-panel admin-panel--products">
+                <div className="admin-panel__head">
+                  <h2 className="admin-panel__title">Products</h2>
+                  <p className="admin-panel__meta">Manage prices, stock and product availability</p>
+                </div>
                 <div className="mt-4 overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
+                  <table className="admin-data-table">
                     <thead>
-                      <tr className="border-b border-white/10 text-slate-400">
+                      <tr>
                         <th className="py-2">ID</th>
                         <th className="py-2">Name</th>
                         <th className="py-2">Price</th>
@@ -385,7 +446,7 @@ export default function AdminPage() {
                     </thead>
                     <tbody>
                       {products.map((product) => (
-                        <tr key={product.id} className="border-b border-white/5">
+                        <tr key={product.id}>
                           <td className="py-2">{product.id}</td>
                           <td className="py-2">{product.name}</td>
                           <td className="py-2">LKR {Number(product.price).toFixed(2)}</td>
@@ -398,10 +459,10 @@ export default function AdminPage() {
                             )}
                           </td>
                           <td className="py-2">
-                            <div className="flex gap-2">
-                              <button type="button" className="rounded-xl border border-emerald-300/30 px-3 py-1 text-emerald-200" onClick={() => restockProduct(product)}>Restock</button>
-                              <button type="button" className="rounded-xl border border-blue-300/30 px-3 py-1 text-blue-200" onClick={() => editProduct(product)}>Edit</button>
-                              <button type="button" className="rounded-xl border border-red-300/30 px-3 py-1 text-red-200" onClick={() => deleteProduct(product.id)}>Delete</button>
+                            <div className="admin-table-actions">
+                              <button type="button" className="admin-action-btn admin-action-btn--restock" onClick={() => restockProduct(product)}>Restock</button>
+                              <button type="button" className="admin-action-btn admin-action-btn--edit" onClick={() => openEditProduct(product)}>Edit</button>
+                              <button type="button" className="admin-action-btn admin-action-btn--delete" onClick={() => setDeleteTarget(product)}>Delete</button>
                             </div>
                           </td>
                         </tr>
@@ -414,29 +475,121 @@ export default function AdminPage() {
           ) : null}
 
           {activeSection === 'analytics' ? (
-            <section className="glass p-6">
-              <h2 className="text-xl font-bold">Day-by-day sales analysis</h2>
-              <div className="mt-4 space-y-3">
+            <section className="admin-panel admin-panel--analytics">
+              <div className="admin-panel__head">
+                <h2 className="admin-panel__title">Sales Analytics</h2>
+                <p className="admin-panel__meta">Day-by-day increase and decrease trend</p>
+              </div>
+
+              <div className="admin-analytics-hero">
+                <article className="admin-trend-stat">
+                  <p className="admin-trend-stat__label">Latest day sales</p>
+                  <p className="admin-trend-stat__value">LKR {Number(lastDayAmount || 0).toFixed(2)}</p>
+                </article>
+                <article className={`admin-trend-stat ${trendDiff >= 0 ? 'admin-trend-stat--up' : 'admin-trend-stat--down'}`}>
+                  <p className="admin-trend-stat__label">Day-over-day change</p>
+                  <p className="admin-trend-stat__value">
+                    {trendDiff >= 0 ? '+' : '-'}{Math.abs(trendPercent).toFixed(1)}%
+                  </p>
+                </article>
+              </div>
+
+              <div className="admin-line-chart-card">
                 {chartRows.length === 0 ? (
                   <p className="text-sm text-slate-400">No order data available yet.</p>
                 ) : (
-                  chartRows.map(([date, amount]) => (
+                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="admin-line-chart" aria-label="Day by day sales chart">
+                    <line x1="0" y1="20" x2="100" y2="20" className="admin-line-grid" />
+                    <line x1="0" y1="40" x2="100" y2="40" className="admin-line-grid" />
+                    <line x1="0" y1="60" x2="100" y2="60" className="admin-line-grid" />
+                    <line x1="0" y1="80" x2="100" y2="80" className="admin-line-grid" />
+                    <polyline points={areaPoints} className="admin-line-area" />
+                    <polyline points={linePoints} className="admin-line-path" />
+                    {chartRows.map(([date, amount], index) => {
+                      const x = chartRows.length === 1 ? 50 : (index / (chartRows.length - 1)) * 100;
+                      const normalized = (amount - (Number.isFinite(minDayAmount) ? minDayAmount : 0)) / chartSpan;
+                      const y = 88 - normalized * 64;
+                      const prevAmount = index > 0 ? chartRows[index - 1][1] : amount;
+                      const isUp = amount >= prevAmount;
+                      return (
+                        <g key={date}>
+                          <circle cx={x} cy={y} r="2.3" className={isUp ? 'admin-line-dot admin-line-dot--up' : 'admin-line-dot admin-line-dot--down'} />
+                        </g>
+                      );
+                    })}
+                  </svg>
+                )}
+              </div>
+
+              <div className="admin-chart-summary">
+                {chartRows.map(([date, amount], index) => {
+                  const prev = index > 0 ? chartRows[index - 1][1] : amount;
+                  const isUp = amount >= prev;
+                  return (
                     <div key={date} className="admin-chart-row">
                       <div className="admin-chart-meta">
                         <span>{date}</span>
-                        <span>LKR {Number(amount).toFixed(2)}</span>
+                        <span className={isUp ? 'admin-chart-meta__up' : 'admin-chart-meta__down'}>
+                          {isUp ? 'Up' : 'Down'}
+                        </span>
                       </div>
                       <div className="admin-chart-track">
                         <div className="admin-chart-bar" style={{ width: `${Math.max(8, (amount / maxDayAmount) * 100)}%` }} />
                       </div>
+                      <p className="admin-chart-value">LKR {Number(amount).toFixed(2)}</p>
                     </div>
-                  ))
-                )}
+                  );
+                })}
               </div>
             </section>
           ) : null}
         </main>
       </div>
+
+      {editOpen ? (
+        <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-label="Edit product">
+          <div className="admin-modal-card">
+            <div className="admin-modal-head">
+              <h3>Edit product</h3>
+              <button type="button" className="admin-modal-close" onClick={() => setEditOpen(false)}>
+                Close
+              </button>
+            </div>
+            <form className="admin-modal-form" onSubmit={saveEditedProduct}>
+              <input className="input-field" placeholder="Name" value={editForm.name} onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))} required />
+              <input className="input-field" placeholder="Price" type="number" step="0.01" value={editForm.price} onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))} required />
+              <input className="input-field" placeholder="Stock" type="number" value={editForm.stock} onChange={(e) => setEditForm((prev) => ({ ...prev, stock: e.target.value }))} required />
+              <select className="input-field" value={editForm.category_id} onChange={(e) => setEditForm((prev) => ({ ...prev, category_id: e.target.value }))}>
+                <option value="0">No category</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+              <input className="input-field md:col-span-2" placeholder="Image URL" value={editForm.image} onChange={(e) => setEditForm((prev) => ({ ...prev, image: e.target.value }))} />
+              <textarea className="input-field md:col-span-2" rows="3" placeholder="Description" value={editForm.description} onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))} />
+              <div className="admin-modal-actions md:col-span-2">
+                <button type="button" className="admin-action-btn" onClick={() => setEditOpen(false)}>Cancel</button>
+                <button type="submit" className="admin-action-btn admin-action-btn--edit">Save changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteTarget ? (
+        <div className="admin-modal-backdrop" role="dialog" aria-modal="true" aria-label="Delete product confirmation">
+          <div className="admin-confirm-card">
+            <p className="admin-confirm-card__eyebrow">Delete product</p>
+            <h3>Are you sure you want to delete this item?</h3>
+            <p className="admin-confirm-card__name">{deleteTarget.name}</p>
+            <p className="admin-confirm-card__hint">This action cannot be undone.</p>
+            <div className="admin-modal-actions">
+              <button type="button" className="admin-action-btn" onClick={() => setDeleteTarget(null)}>Cancel</button>
+              <button type="button" className="admin-action-btn admin-action-btn--delete" onClick={() => deleteProduct(deleteTarget.id)}>Delete</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

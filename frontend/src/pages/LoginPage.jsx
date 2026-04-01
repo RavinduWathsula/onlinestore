@@ -43,12 +43,13 @@ export default function LoginPage() {
           <p className="auth-eyebrow">NeoCart Access</p>
           <h2 className="text-3xl font-bold">Login</h2>
           <p className="mt-2 text-slate-300">Access your NeoCart account.</p>
-          <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+          <form className="mt-6 space-y-4" onSubmit={onSubmit} autoComplete="off">
             <div>
               <label className="mb-1 block text-sm text-slate-300">Email</label>
               <input
                 className="input-field"
                 type="email"
+                autoComplete="off"
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
@@ -60,6 +61,7 @@ export default function LoginPage() {
               <input
                 className="input-field"
                 type="password"
+                autoComplete="new-password"
                 placeholder="Enter your password"
                 value={form.password}
                 onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}

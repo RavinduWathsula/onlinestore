@@ -40,12 +40,13 @@ export default function RegisterPage() {
           <p className="auth-eyebrow">Start Shopping</p>
           <h2 className="text-3xl font-bold">Register</h2>
           <p className="mt-2 text-slate-300">Create your account to start shopping.</p>
-          <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+          <form className="mt-6 space-y-4" onSubmit={onSubmit} autoComplete="off">
             <div>
               <label className="mb-1 block text-sm text-slate-300">Full name</label>
               <input
                 className="input-field"
                 type="text"
+                autoComplete="off"
                 placeholder="John Doe"
                 value={form.name}
                 onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
@@ -57,6 +58,7 @@ export default function RegisterPage() {
               <input
                 className="input-field"
                 type="email"
+                autoComplete="off"
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
@@ -68,6 +70,7 @@ export default function RegisterPage() {
               <input
                 className="input-field"
                 type="password"
+                autoComplete="new-password"
                 placeholder="Choose a strong password"
                 value={form.password}
                 onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
