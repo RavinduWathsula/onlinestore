@@ -59,6 +59,20 @@ Vite dev server proxies /api calls to http://localhost/NovaStore.
 If you open frontend/index.html directly in Apache, the React app will not start as expected.
 Use the Vite URL above for the React frontend.
 
+## 4.1) Host Frontend On GitHub Pages
+
+GitHub Pages can host the React frontend, but not the PHP backend.
+
+To publish the frontend:
+
+1. Push this repo to GitHub.
+2. In GitHub, enable Pages for the repository and choose GitHub Actions as the source.
+3. Push to `main` or run the workflow manually.
+
+The workflow in `.github/workflows/deploy-frontend.yml` builds `frontend` and publishes `frontend/dist`.
+
+If you want the site to use live data, set `VITE_API_BASE_URL` to a hosted PHP API before building. GitHub Pages itself cannot run the PHP files in this repository.
+
 ## Quick Troubleshooting
 
 - PHP homepage works: http://localhost/NovaStore/index.php
