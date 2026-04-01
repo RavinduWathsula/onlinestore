@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import logoMark from '../assets/neocart-logo.svg';
 
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth();
@@ -30,7 +31,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl">
         <div className="nav-shell">
           <Link to="/" className="nav-brand">
-            <span className="nav-brand__orb" aria-hidden="true" />
+            <img src={logoMark} alt="NeoCart logo" className="nav-brand__logo" />
             <span>NeoCart</span>
           </Link>
           <nav className="nav-main">

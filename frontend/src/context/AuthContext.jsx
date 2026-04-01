@@ -63,9 +63,6 @@ export function AuthProvider({ children }) {
 
   const register = async (payload) => {
     const res = await authApi.register(payload);
-    const nextUser = res.data.user;
-    setUser(nextUser);
-    setCoupons(loadCoupons(nextUser));
     return res;
   };
 

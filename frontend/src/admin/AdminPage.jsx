@@ -5,6 +5,8 @@ import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import DotsBackground3D from '../components/DotsBackground3D';
+import brandLogo from '../assets/neocart-logo.svg';
+import adminAvatar from '../assets/admin-avatar.svg';
 
 const initialForm = {
   name: '',
@@ -37,6 +39,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [selectedDate, setSelectedDate] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState(initialEditForm);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -181,7 +184,17 @@ export default function AdminPage() {
     }
   };
 
-  const dailySales = orders.reduce((acc, order) => {
+  const filteredOrders = selectedDate
+    ? orders.filter((order) => {
+        const dateValue = order.created_at || order.createdAt || order.date;
+        if (!dateValue) return false;
+        const date = new Date(dateValue);
+        if (Number.isNaN(date.getTime())) return false;
+        return date.toISOString().slice(0, 10) === selectedDate;
+      })
+    : orders;
+
+  const dailySales = filteredOrders.reduce((acc, order) => {
     const dateValue = order.created_at || order.createdAt || order.date;
     if (!dateValue) return acc;
 
@@ -215,7 +228,9 @@ export default function AdminPage() {
   const trendPercent = prevDayAmount > 0 ? (trendDiff / prevDayAmount) * 100 : 0;
   const adminUser = users.find((user) => user.role === 'admin');
   const customerUsers = users.filter((user) => user.role !== 'admin');
-  const recentOrders = orders.slice(0, 7);
+  const recentOrders = filteredOrders.slice(0, 7);
+  const customersWithPhone = customerUsers.filter((user) => String(user.phone || '').trim()).length;
+  const customersWithoutPhone = customerUsers.length - customersWithPhone;
 
   if (loading) return <LoadingSpinner label="Loading admin panel" />;
 
@@ -225,7 +240,7 @@ export default function AdminPage() {
       <div className="admin-layout relative z-10">
         <aside className="admin-sidebar">
           <div className="admin-brand">
-            <span className="admin-brand__logo">N</span>
+            <img src={brandLogo} alt="NeoCart" className="admin-brand__logo" />
             <div>
               <p className="admin-brand__name">NeoCart</p>
               <p className="admin-brand__sub">Admin console</p>
@@ -262,11 +277,20 @@ export default function AdminPage() {
                 <div>
                   <h1 className="admin-title">Dashboard</h1>
                   <p className="admin-subtitle">Track catalog performance and order activity in one place.</p>
-                  <input className="admin-date" type="date" />
+                  <input
+                    className="admin-date"
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)}
+                  />
                 </div>
                 <div className="admin-user-card">
-                  <p className="admin-user-card__name">{adminUser?.name || 'Admin'}</p>
-                  <p className="admin-user-card__role">Admin</p>
+                  <div>
+                    <p className="admin-user-card__name">{adminUser?.name || 'Admin'}</p>
+                    <p className="admin-user-card__role">Admin</p>
+                  </div>
+                  <img src={adminAvatar} alt="Admin profile" className="admin-user-card__avatar" />
                 </div>
               </section>
 
@@ -361,6 +385,20 @@ export default function AdminPage() {
                 <h2 className="admin-panel__title">Customers</h2>
                 <p className="admin-panel__meta">Total customers: {customerUsers.length}</p>
               </div>
+              <div className="admin-customers-kpis">
+                <article className="admin-customers-kpi admin-customers-kpi--total">
+                  <p className="admin-customers-kpi__label">Total customers</p>
+                  <p className="admin-customers-kpi__value">{customerUsers.length}</p>
+                </article>
+                <article className="admin-customers-kpi admin-customers-kpi--phone">
+                  <p className="admin-customers-kpi__label">With phone number</p>
+                  <p className="admin-customers-kpi__value">{customersWithPhone}</p>
+                </article>
+                <article className="admin-customers-kpi admin-customers-kpi--pending">
+                  <p className="admin-customers-kpi__label">Need profile update</p>
+                  <p className="admin-customers-kpi__value">{customersWithoutPhone}</p>
+                </article>
+              </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="admin-data-table">
                   <thead>
@@ -373,11 +411,24 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {customerUsers.map((user) => (
-                      <tr key={user.id}>
+                      <tr key={user.id} className="admin-customer-row">
                         <td className="py-2">{user.id}</td>
-                        <td className="py-2">{user.name}</td>
+                        <td className="py-2">
+                          <div className="admin-customer-name">
+                            <span className="admin-customer-avatar" aria-hidden="true">
+                              {String(user.name || 'U').trim().charAt(0).toUpperCase()}
+                            </span>
+                            <span>{user.name}</span>
+                          </div>
+                        </td>
                         <td className="py-2">{user.email}</td>
-                        <td className="py-2">{user.phone || '-'}</td>
+                        <td className="py-2">
+                          {user.phone ? (
+                            <span className="admin-phone-badge">{user.phone}</span>
+                          ) : (
+                            <span className="admin-phone-badge admin-phone-badge--empty">Not set</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

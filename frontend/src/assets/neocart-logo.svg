@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">NeoCart logo</title>
+  <desc id="desc">Stylized N mark with cart wheel accents in blue gradient.</desc>
+  <defs>
+    <linearGradient id="neoBlue" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="55%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+  </defs>
+
+  <path
+    d="M86 358c-29 0-53 24-53 53s24 53 53 53 53-24 53-53-24-53-53-53zm0 72c-10 0-19-9-19-19 0-11 9-19 19-19 11 0 19 8 19 19 0 10-8 19-19 19z"
+    fill="url(#neoBlue)"
+    opacity="0.98"
+  />
+  <path
+    d="M354 358c-29 0-53 24-53 53s24 53 53 53 53-24 53-53-24-53-53-53zm0 72c-10 0-19-9-19-19 0-11 9-19 19-19 11 0 19 8 19 19 0 10-8 19-19 19z"
+    fill="url(#neoBlue)"
+    opacity="0.98"
+  />
+
+  <path
+    d="M42 74h76l43 218c3 13 15 22 28 22h202c13 0 25-8 29-20l37-109a22 22 0 0 0-21-29H154l-14-82H42a18 18 0 1 0 0 36z"
+    fill="url(#neoBlue)"
+  />
+  <path
+    d="M175 126l58 101 63-73 70 92"
+    fill="none"
+    stroke="#93c5fd"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.92"
+  />
+  <path
+    d="M367 245l57-8-31-48"
+    fill="none"
+    stroke="#60a5fa"
+    stroke-width="22"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

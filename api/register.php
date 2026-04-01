@@ -44,17 +44,15 @@ $stmt->execute();
 $userId = (int) db()->insert_id;
 $stmt->close();
 
-$_SESSION['user'] = [
-    'id' => $userId,
-    'name' => $name,
-    'email' => $email,
-    'role' => $role,
-    'phone' => '',
-    'address' => '',
-];
-
 respond([
     'ok' => true,
-    'message' => 'Registration successful',
-    'user' => sanitize_user($_SESSION['user']),
+    'message' => 'Registration successful. Please login to continue.',
+    'user' => [
+        'id' => $userId,
+        'name' => $name,
+        'email' => $email,
+        'role' => $role,
+        'phone' => '',
+        'address' => '',
+    ],
 ], 201);

@@ -73,7 +73,7 @@ export default function App() {
         }
       >
         <Routes>
-          <Route path="/" element={<Navigate to={isAdmin ? '/admin' : '/home'} replace />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route
             path="/home"
             element={<HomePage />}
@@ -142,7 +142,7 @@ export default function App() {
               </AdminRoute>
             }
           />
-          <Route path="*" element={<Navigate to={isAdmin ? '/admin' : '/home'} replace />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
       {showStoreLayout ? <Footer /> : null}

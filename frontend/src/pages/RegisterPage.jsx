@@ -22,8 +22,8 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
-      showToast('Account created successfully');
-      navigate('/home');
+      showToast('Account created. Please login to continue.');
+      navigate('/login');
     } catch (error) {
       const response = error?.response?.data;
       setErrors(response?.errors || { form: response?.message || 'Registration failed' });
