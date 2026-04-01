@@ -67,6 +67,16 @@ export function AuthProvider({ children }) {
     setCoupons([]);
   };
 
+  const updateProfile = async (payload) => {
+    const res = await authApi.updateProfile(payload);
+    const nextUser = res.data?.data;
+    if (nextUser) {
+      setUser(nextUser);
+      setCoupons(loadCoupons(nextUser));
+    }
+    return res;
+  };
+
   const addCoupon = (coupon) => {
     if (!user || !coupon?.code) return false;
     const exists = coupons.some((item) => item.code === coupon.code);
@@ -94,6 +104,7 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      updateProfile,
       addCoupon,
       removeCoupon,
     }),

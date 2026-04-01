@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { ordersApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import DotsBackground3D from '../components/DotsBackground3D';
+import { useToast } from '../context/ToastContext';
 
 function statusClass(status) {
   const map = {
@@ -23,11 +24,27 @@ function formatMoney(amount) {
 }
 
 export default function DashboardPage() {
-  const { user, coupons } = useAuth();
+  const { user, coupons, updateProfile } = useAuth();
+  const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
   const [showCoupons, setShowCoupons] = useState(false);
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    phone: '',
+    address: '',
+  });
+
+  useEffect(() => {
+    setProfileForm({
+      name: user?.name || '',
+      phone: user?.phone || '',
+      address: user?.address || '',
+    });
+  }, [user]);
 
   useEffect(() => {
     ordersApi
@@ -67,20 +84,28 @@ export default function DashboardPage() {
   <meta charset="utf-8" />
   <title>NeoCart Receipt #${order.id}</title>
   <style>
-    body { font-family: Arial, sans-serif; background: radial-gradient(circle at top right, #1d4ed8 0%, #0f172a 45%, #050816 100%); margin: 0; padding: 28px; color: #e2e8f0; }
-    .card { max-width: 920px; margin: 0 auto; background: linear-gradient(145deg, rgba(14,24,54,0.96), rgba(8,12,32,0.96)); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 22px; padding: 28px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45); }
-    .brand { font-size: 28px; font-weight: 800; margin: 0; color: #93c5fd; letter-spacing: 0.5px; }
-    .meta { display:flex; justify-content: space-between; gap:16px; margin-top: 14px; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; min-height: 100vh; margin: 0; display: grid; place-items: center; background: radial-gradient(circle at 20% 15%, #3047a4 0%, #141d45 36%, #080b1f 78%, #05070f 100%); color: #e2e8f0; padding: 24px; }
+    .stage { width: 100%; max-width: 1024px; }
+    .paper { width: 100%; background: linear-gradient(160deg, rgba(18,28,62,0.98), rgba(10,15,38,0.98)); border: 1px solid rgba(147, 197, 253, 0.35); border-radius: 28px; padding: 30px; box-shadow: 0 24px 70px rgba(7, 11, 33, 0.65), inset 0 1px 0 rgba(255,255,255,0.18); position: relative; overflow: hidden; }
+    .paper:before { content: ''; position: absolute; inset: -80px auto auto -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(96,165,250,0.35), transparent 72%); pointer-events: none; }
+    .paper:after { content: ''; position: absolute; inset: auto -80px -90px auto; width: 320px; height: 320px; background: radial-gradient(circle, rgba(167,139,250,0.25), transparent 72%); pointer-events: none; }
+    .brand { position: relative; font-size: 30px; font-weight: 800; margin: 0; color: #dbeafe; letter-spacing: 0.6px; }
+    .meta { position: relative; display:flex; justify-content: space-between; gap:20px; margin-top: 14px; }
+    .meta p { margin: 8px 0; color: #cbd5e1; }
+    .customer { position: relative; margin-top: 14px; border: 1px solid rgba(148,163,184,0.28); border-radius: 14px; padding: 12px 14px; background: rgba(15,23,42,0.38); }
+    .customer p { margin: 6px 0; font-size: 13px; color: #cbd5e1; }
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-    .totals { margin-top: 16px; text-align: right; font-weight: 800; font-size: 22px; color: #93c5fd; }
+    .totals { margin-top: 16px; text-align: right; font-weight: 800; font-size: 22px; color: #bfdbfe; }
     th { color: #cbd5e1; }
     td { color: #e2e8f0; }
     .note { margin-top: 12px; font-size: 12px; color: #94a3b8; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1 class="brand">NeoCart Payment Receipt</h1>
+  <div class="stage">
+  <div class="paper">
+    <h1 class="brand">NeoCart Premium Receipt</h1>
     <div class="meta">
       <div>
         <p><strong>Order ID:</strong> #${order.id}</p>
@@ -88,7 +113,13 @@ export default function DashboardPage() {
       </div>
       <div>
         <p><strong>Payment:</strong> ${paymentLabel}</p>
+        ${order.coupon_code ? `<p><strong>Coupon:</strong> ${order.coupon_code}</p>` : ''}
       </div>
+    </div>
+    <div class="customer">
+      <p><strong>Customer:</strong> ${order.customer_name || 'Customer'}</p>
+      <p><strong>Phone:</strong> ${order.customer_phone || 'Not provided'}</p>
+      <p><strong>Address:</strong> ${order.customer_address || 'Not provided'}</p>
     </div>
     <table>
       <thead>
@@ -101,11 +132,37 @@ export default function DashboardPage() {
       </thead>
       <tbody>${rows}</tbody>
     </table>
-    <p class="totals">Total: ${formatMoney(order.total_amount)}</p>
+    <p style="margin-top:12px;text-align:right;color:#bfdbfe;">Subtotal: ${formatMoney(order.subtotal_amount ?? order.total_amount)}</p>
+    <p style="margin-top:6px;text-align:right;color:#86efac;">Discount: -${formatMoney(order.discount_amount ?? 0)}</p>
+    <p class="totals">Total Paid: ${formatMoney(order.total_amount)}</p>
     <p class="note">Thanks for your order. This receipt was generated by NeoCart.</p>
+  </div>
   </div>
 </body>
 </html>`;
+  };
+
+  const submitProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    try {
+      await updateProfile({
+        name: profileForm.name,
+        phone: profileForm.phone,
+        address: profileForm.address,
+      });
+      showToast('Profile updated successfully');
+      setShowProfileEditor(false);
+    } catch (error) {
+      const message =
+        error?.response?.data?.errors?.phone ||
+        error?.response?.data?.errors?.name ||
+        error?.response?.data?.message ||
+        'Profile update failed';
+      showToast(message, 'error');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const downloadReceipt = async (orderId) => {
@@ -146,6 +203,13 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-400">Member email</p>
             <p className="font-semibold">{user?.email}</p>
             <p className="mt-1 text-xs capitalize text-slate-400">Role: {user?.role}</p>
+            <button
+              type="button"
+              className="btn-secondary mt-3 px-3 py-2 text-xs"
+              onClick={() => setShowProfileEditor((value) => !value)}
+            >
+              {showProfileEditor ? 'Hide Profile Edit' : 'Edit Profile'}
+            </button>
           </div>
         </div>
 
@@ -167,6 +231,57 @@ export default function DashboardPage() {
             <p className="mt-2 text-2xl font-bold text-amber-300">{processingOrders}</p>
           </article>
         </div>
+
+        {showProfileEditor ? (
+          <form className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4" onSubmit={submitProfile}>
+            <h2 className="text-lg font-semibold">Profile Settings</h2>
+            <p className="mt-1 text-sm text-slate-400">Update your customer profile. Email is fixed and cannot be changed.</p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="text-sm text-slate-300">
+                Name
+                <input
+                  className="input-field mt-1"
+                  value={profileForm.name}
+                  onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+              </label>
+              <label className="text-sm text-slate-300">
+                Email (read only)
+                <input className="input-field mt-1 opacity-70" value={user?.email || ''} readOnly />
+              </label>
+              <label className="text-sm text-slate-300">
+                Phone
+                <input
+                  className="input-field mt-1"
+                  placeholder="07XXXXXXXX"
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
+                />
+              </label>
+              <label className="text-sm text-slate-300 md:col-span-2">
+                Address
+                <textarea
+                  className="input-field mt-1 min-h-[88px]"
+                  value={profileForm.address}
+                  onChange={(e) => setProfileForm((prev) => ({ ...prev, address: e.target.value }))}
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button type="submit" className="btn-primary" disabled={savingProfile}>
+                {savingProfile ? 'Saving...' : 'Save Profile'}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setShowProfileEditor(false)}
+                disabled={savingProfile}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : null}
       </section>
 
       <section className="glass p-6 md:p-8">

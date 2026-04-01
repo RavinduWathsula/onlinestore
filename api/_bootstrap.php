@@ -74,5 +74,7 @@ function sanitize_user(array $user): array
         'name' => (string) ($user['name'] ?? ''),
         'email' => (string) ($user['email'] ?? ''),
         'role' => (string) ($user['role'] ?? 'customer'),
+        'phone' => (string) ($user['phone'] ?? ''),
+        'address' => (string) ($user['address'] ?? ''),
     ];
 }

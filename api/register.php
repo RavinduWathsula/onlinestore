@@ -49,6 +49,8 @@ $_SESSION['user'] = [
     'name' => $name,
     'email' => $email,
     'role' => $role,
+    'phone' => '',
+    'address' => '',
 ];
 
 respond([

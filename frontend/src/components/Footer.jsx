@@ -1,14 +1,26 @@
 import { Facebook, Instagram, Linkedin, Twitter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const links = [
-  { icon: Facebook, href: '#' },
-  { icon: Twitter, href: '#' },
-  { icon: Instagram, href: '#' },
-  { icon: Linkedin, href: '#' },
+  { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
+  { icon: Twitter, href: 'https://x.com', label: 'X' },
+  { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
+  { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
 ];
 
-const quickLinks = ['Home', 'Products', 'Dashboard', 'Cart'];
-const supportLinks = ['Help Center', 'Shipping', 'Returns', 'Privacy'];
+const quickLinks = [
+  { label: 'Home', to: '/home' },
+  { label: 'Products', to: '/products' },
+  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Cart', to: '/cart' },
+];
+
+const supportLinks = [
+  { label: 'Help Center', href: 'mailto:support@neocart.local' },
+  { label: 'Shipping', to: '/products' },
+  { label: 'Returns', href: 'mailto:support@neocart.local?subject=Return%20Request' },
+  { label: 'Privacy', to: '/home' },
+];
 
 export default function Footer() {
   return (
@@ -18,8 +30,15 @@ export default function Footer() {
           <h4 className="text-lg font-bold">NeoCart</h4>
           <p className="mt-2 text-sm text-slate-400">Modern marketplace for electronics, fashion, beauty, and home essentials.</p>
           <div className="mt-4 flex items-center justify-start gap-3">
-            {links.map(({ icon: Icon, href }) => (
-              <a key={href + Icon.name} href={href} className="rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/10" aria-label={Icon.name}>
+            {links.map(({ icon: Icon, href, label }) => (
+              <a
+                key={href + Icon.name}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border border-white/10 p-2 text-slate-200 hover:bg-white/10"
+                aria-label={label}
+              >
                 <Icon size={18} />
               </a>
             ))}
@@ -30,7 +49,11 @@ export default function Footer() {
           <h5 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">Quick Links</h5>
           <ul className="mt-3 space-y-2 text-sm text-slate-400">
             {quickLinks.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item.label}>
+                <Link to={item.to} className="transition hover:text-white">
+                  {item.label}
+                </Link>
+              </li>
             ))}
           </ul>
         </div>
@@ -39,7 +62,17 @@ export default function Footer() {
           <h5 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">Support</h5>
           <ul className="mt-3 space-y-2 text-sm text-slate-400">
             {supportLinks.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item.label}>
+                {item.to ? (
+                  <Link to={item.to} className="transition hover:text-white">
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a href={item.href} className="transition hover:text-white">
+                    {item.label}
+                  </a>
+                )}
+              </li>
             ))}
           </ul>
         </div>

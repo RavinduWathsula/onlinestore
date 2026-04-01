@@ -46,7 +46,7 @@ function isValidSriLankaPhone(value) {
 }
 
 export default function CheckoutPage() {
-  const { coupons, removeCoupon } = useAuth();
+  const { user, coupons, removeCoupon } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [summary, setSummary] = useState({ total: 0, count: 0 });
   const [loadingCart, setLoadingCart] = useState(true);
@@ -118,20 +118,28 @@ export default function CheckoutPage() {
   <meta charset="utf-8" />
   <title>NeoCart Bill #${bill.orderId}</title>
   <style>
-    body { font-family: Arial, sans-serif; background: radial-gradient(circle at top right, #1d4ed8 0%, #0f172a 45%, #050816 100%); margin: 0; padding: 28px; color: #e2e8f0; }
-    .card { max-width: 920px; margin: 0 auto; background: linear-gradient(145deg, rgba(14,24,54,0.96), rgba(8,12,32,0.96)); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 22px; padding: 28px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45); }
-    .brand { font-size: 28px; font-weight: 800; margin: 0; color: #93c5fd; letter-spacing: 0.5px; }
-    .meta { display:flex; justify-content: space-between; gap:16px; margin-top: 14px; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; min-height: 100vh; margin: 0; display: grid; place-items: center; background: radial-gradient(circle at 20% 15%, #3047a4 0%, #141d45 36%, #080b1f 78%, #05070f 100%); color: #e2e8f0; padding: 24px; }
+    .stage { width: 100%; max-width: 1024px; }
+    .paper { width: 100%; background: linear-gradient(160deg, rgba(18,28,62,0.98), rgba(10,15,38,0.98)); border: 1px solid rgba(147, 197, 253, 0.35); border-radius: 28px; padding: 30px; box-shadow: 0 24px 70px rgba(7, 11, 33, 0.65), inset 0 1px 0 rgba(255,255,255,0.18); position: relative; overflow: hidden; }
+    .paper:before { content: ''; position: absolute; inset: -80px auto auto -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(96,165,250,0.35), transparent 72%); pointer-events: none; }
+    .paper:after { content: ''; position: absolute; inset: auto -80px -90px auto; width: 320px; height: 320px; background: radial-gradient(circle, rgba(167,139,250,0.25), transparent 72%); pointer-events: none; }
+    .brand { position: relative; font-size: 30px; font-weight: 800; margin: 0; color: #dbeafe; letter-spacing: 0.6px; }
+    .meta { position: relative; display:flex; justify-content: space-between; gap:20px; margin-top: 14px; }
+    .meta p { margin: 8px 0; color: #cbd5e1; }
+    .customer { position: relative; margin-top: 14px; border: 1px solid rgba(148,163,184,0.28); border-radius: 14px; padding: 12px 14px; background: rgba(15,23,42,0.38); }
+    .customer p { margin: 6px 0; font-size: 13px; color: #cbd5e1; }
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-    .totals { margin-top: 16px; text-align: right; font-weight: 800; font-size: 22px; color: #93c5fd; }
+    .totals { margin-top: 16px; text-align: right; font-weight: 800; font-size: 22px; color: #bfdbfe; }
     th { color: #cbd5e1; }
     td { color: #e2e8f0; }
     .note { margin-top: 12px; font-size: 12px; color: #94a3b8; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1 class="brand">NeoCart Payment Bill</h1>
+  <div class="stage">
+  <div class="paper">
+    <h1 class="brand">NeoCart Premium Receipt</h1>
     <div class="meta">
       <div>
         <p><strong>Order ID:</strong> #${bill.orderId}</p>
@@ -141,6 +149,11 @@ export default function CheckoutPage() {
         <p><strong>Payment:</strong> ${bill.paymentMethodLabel}</p>
         ${bill.couponCode ? `<p><strong>Coupon:</strong> ${bill.couponCode}</p>` : ''}
       </div>
+    </div>
+    <div class="customer">
+      <p><strong>Customer:</strong> ${bill.customerName || 'Customer'}</p>
+      <p><strong>Phone:</strong> ${bill.customerPhone || 'Not provided'}</p>
+      <p><strong>Address:</strong> ${bill.customerAddress || 'Not provided'}</p>
     </div>
     <table>
       <thead>
@@ -157,6 +170,7 @@ export default function CheckoutPage() {
     <p style="margin-top:6px;text-align:right;color:#86efac;">Discount: -${formatMoney(bill.discountAmount ?? 0)}</p>
     <p class="totals">Total Paid: ${formatMoney(bill.total)}</p>
     <p class="note">Thank you for shopping with NeoCart. Keep this bill for your records.</p>
+  </div>
   </div>
 </body>
 </html>`;
@@ -228,6 +242,9 @@ export default function CheckoutPage() {
         couponCode: res.data.order?.coupon_code || selectedCoupon || null,
         total: amount,
         paymentMethodLabel,
+        customerName: user?.name || '',
+        customerPhone: normalizePhoneInput(phone) || user?.phone || '',
+        customerAddress: user?.address || '',
       });
 
       if (selectedCoupon) {

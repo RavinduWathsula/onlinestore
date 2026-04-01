@@ -13,6 +13,8 @@ export const authApi = {
   login: (payload) => api.post('/login.php', payload),
   register: (payload) => api.post('/register.php', payload),
   logout: () => api.post('/logout.php'),
+  profile: () => api.get('/profile.php'),
+  updateProfile: (payload) => api.patch('/profile.php', payload),
 };
 
 export const productsApi = {

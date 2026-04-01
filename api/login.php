@@ -14,7 +14,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL) || $password === '') {
     respond(['ok' => false, 'message' => 'Invalid credentials'], 422);
 }
 
-$stmt = db()->prepare('SELECT id, name, email, password, role FROM users WHERE email = ? LIMIT 1');
+$stmt = db()->prepare('SELECT id, name, email, password, role, phone, address FROM users WHERE email = ? LIMIT 1');
 $stmt->bind_param('s', $email);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -29,6 +29,8 @@ $_SESSION['user'] = [
     'name' => (string) $user['name'],
     'email' => (string) $user['email'],
     'role' => (string) $user['role'],
+    'phone' => (string) ($user['phone'] ?? ''),
+    'address' => (string) ($user['address'] ?? ''),
 ];
 
 respond([
