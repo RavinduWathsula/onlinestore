@@ -19,7 +19,7 @@ export default function LoginPage() {
     try {
       await login(form);
       showToast('Welcome back');
-      navigate('/dashboard');
+      navigate('/home');
     } catch (error) {
       const response = error?.response?.data;
       setErrors(response?.errors || { form: response?.message || 'Login failed' });
@@ -31,31 +31,9 @@ export default function LoginPage() {
   return (
     <section className="auth-shell">
       <AuthBackground3D />
-      <div className="auth-grid">
-        <aside className="auth-feature-panel">
+      <div className="auth-grid auth-grid--single">
+        <div className="auth-form-panel auth-form-panel--login">
           <p className="auth-eyebrow">NeoCart Access</p>
-          <h1 className="auth-title">Sign in to continue your shopping journey.</h1>
-          <p className="auth-subtitle">
-            Fast checkout, saved carts, and personalized picks all in one secure account.
-          </p>
-          <div className="auth-feature-list">
-            <div className="auth-feature-chip">
-              <p className="text-sm font-semibold text-blue-100">One-tap reorder</p>
-              <p className="text-xs text-blue-100/70">Repeat previous purchases instantly.</p>
-            </div>
-            <div className="auth-feature-chip">
-              <p className="text-sm font-semibold text-blue-100">Live order tracking</p>
-              <p className="text-xs text-blue-100/70">Real-time delivery updates to your dashboard.</p>
-            </div>
-            <div className="auth-feature-chip">
-              <p className="text-sm font-semibold text-blue-100">Secure wallet support</p>
-              <p className="text-xs text-blue-100/70">Protected payments and account verification.</p>
-            </div>
-          </div>
-        </aside>
-
-        <div className="auth-form-panel">
-          <p className="auth-eyebrow">Welcome Back</p>
           <h2 className="text-3xl font-bold">Login</h2>
           <p className="mt-2 text-slate-300">Access your NeoCart account.</p>
           <form className="mt-6 space-y-4" onSubmit={onSubmit}>
@@ -81,11 +59,30 @@ export default function LoginPage() {
               />
               {errors.password && <p className="mt-1 text-sm text-red-300">{errors.password}</p>}
             </div>
+            <div className="auth-meta-row">
+              <label className="auth-meta-check">
+                <input type="checkbox" />
+                <span>Remember me</span>
+              </label>
+              <Link to="/register" className="auth-meta-link">
+                Need an account?
+              </Link>
+            </div>
             {errors.form && <p className="text-sm text-red-300">{errors.form}</p>}
             <button disabled={loading} className="btn-primary w-full" type="submit">
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
+          <div className="auth-helper-grid">
+            <div className="auth-helper-chip">
+              <strong>Fast checkout</strong>
+              <span>Saved details and quick payments.</span>
+            </div>
+            <div className="auth-helper-chip">
+              <strong>Live order updates</strong>
+              <span>Track all your orders in one place.</span>
+            </div>
+          </div>
           <p className="mt-5 text-sm text-slate-300">
             New user?{' '}
             <Link to="/register" className="text-blue-300 hover:text-blue-200">

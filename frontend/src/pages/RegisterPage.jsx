@@ -19,7 +19,7 @@ export default function RegisterPage() {
     try {
       await register(form);
       showToast('Account created successfully');
-      navigate('/dashboard');
+      navigate('/home');
     } catch (error) {
       const response = error?.response?.data;
       setErrors(response?.errors || { form: response?.message || 'Registration failed' });
@@ -31,30 +31,8 @@ export default function RegisterPage() {
   return (
     <section className="auth-shell">
       <AuthBackground3D />
-      <div className="auth-grid">
-        <aside className="auth-feature-panel auth-feature-panel--register">
-          <p className="auth-eyebrow">New on NeoCart</p>
-          <h1 className="auth-title">Create your account and unlock member-only drops.</h1>
-          <p className="auth-subtitle">
-            Save favorites, track every order, and get tailored offers built around your style.
-          </p>
-          <div className="auth-feature-list">
-            <div className="auth-feature-chip">
-              <p className="text-sm font-semibold text-blue-100">Smart recommendations</p>
-              <p className="text-xs text-blue-100/70">Personalized picks based on your activity.</p>
-            </div>
-            <div className="auth-feature-chip">
-              <p className="text-sm font-semibold text-blue-100">Deal alerts</p>
-              <p className="text-xs text-blue-100/70">Be first to know when flash sales go live.</p>
-            </div>
-            <div className="auth-feature-chip">
-              <p className="text-sm font-semibold text-blue-100">Faster checkout</p>
-              <p className="text-xs text-blue-100/70">Auto-filled details for quick purchases.</p>
-            </div>
-          </div>
-        </aside>
-
-        <div className="auth-form-panel">
+      <div className="auth-grid auth-grid--single">
+        <div className="auth-form-panel auth-form-panel--register">
           <p className="auth-eyebrow">Start Shopping</p>
           <h2 className="text-3xl font-bold">Register</h2>
           <p className="mt-2 text-slate-300">Create your account to start shopping.</p>
@@ -92,11 +70,24 @@ export default function RegisterPage() {
               />
               {errors.password && <p className="mt-1 text-sm text-red-300">{errors.password}</p>}
             </div>
+            <div className="auth-meta-row">
+              <p className="text-xs text-slate-400">Use at least 8 characters with letters and numbers.</p>
+            </div>
             {errors.form && <p className="text-sm text-red-300">{errors.form}</p>}
             <button disabled={loading} className="btn-primary w-full" type="submit">
               {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
+          <div className="auth-helper-grid">
+            <div className="auth-helper-chip">
+              <strong>Member-only drops</strong>
+              <span>Get first access to weekly releases.</span>
+            </div>
+            <div className="auth-helper-chip">
+              <strong>Smart recommendations</strong>
+              <span>Products tailored to your interests.</span>
+            </div>
+          </div>
           <p className="mt-5 text-sm text-slate-300">
             Already registered?{' '}
             <Link to="/login" className="text-blue-300 hover:text-blue-200">

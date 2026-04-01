@@ -1,16 +1,30 @@
 import { ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80';
 
 export default function ProductCard({ product, onAdd }) {
-  const image =
-    product.image ||
-    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80';
+  const image = product.image || FALLBACK_IMAGE;
 
   return (
     <article className="glass group overflow-hidden transition hover:-translate-y-1">
-      <img src={image} alt={product.name} className="h-52 w-full object-cover" />
+      <Link to={`/products/${product.id}`} className="block">
+        <img
+          src={image}
+          alt={product.name}
+          className="h-52 w-full object-cover"
+          loading="lazy"
+          onError={(event) => {
+            event.currentTarget.src = FALLBACK_IMAGE;
+          }}
+        />
+      </Link>
       <div className="space-y-3 p-4">
         <p className="text-xs uppercase tracking-widest text-blue-200/80">{product.category_name || 'General'}</p>
-        <h3 className="line-clamp-2 text-lg font-semibold">{product.name}</h3>
+        <Link to={`/products/${product.id}`} className="block line-clamp-2 text-lg font-semibold hover:text-blue-200">
+          {product.name}
+        </Link>
         <div className="flex items-center justify-between">
           <p className="text-xl font-bold text-blue-300">LKR {Number(product.price).toFixed(2)}</p>
           <p className={`text-xs ${Number(product.stock) > 0 ? 'text-emerald-300' : 'text-red-300'}`}>
@@ -18,18 +32,23 @@ export default function ProductCard({ product, onAdd }) {
           </p>
         </div>
         {typeof onAdd === 'function' ? (
-          <button
-            type="button"
-            onClick={() => onAdd(product)}
-            disabled={Number(product.stock) < 1}
-            className="btn-primary w-full gap-2 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ShoppingCart size={16} /> Add to cart
-          </button>
-        ) : (
-          <div className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-center text-sm text-slate-300">
-            Explore in shop
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => onAdd(product)}
+              disabled={Number(product.stock) < 1}
+              className="btn-primary w-full gap-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ShoppingCart size={16} /> Add to cart
+            </button>
+            <Link to={`/products/${product.id}`} className="btn-secondary w-full text-center">
+              View details
+            </Link>
           </div>
+        ) : (
+          <Link to={`/products/${product.id}`} className="btn-secondary w-full text-center">
+            Explore in shop
+          </Link>
         )}
       </div>
     </article>

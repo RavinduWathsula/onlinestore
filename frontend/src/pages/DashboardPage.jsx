@@ -3,10 +3,29 @@ import { useAuth } from '../context/AuthContext';
 import { ordersApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+function statusClass(status) {
+  const map = {
+    delivered: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30',
+    shipped: 'bg-sky-500/15 text-sky-300 border-sky-400/30',
+    processing: 'bg-amber-500/15 text-amber-300 border-amber-400/30',
+    pending: 'bg-slate-500/15 text-slate-300 border-slate-400/30',
+    cancelled: 'bg-rose-500/15 text-rose-300 border-rose-400/30',
+  };
+  return map[String(status || '').toLowerCase()] || 'bg-indigo-500/15 text-indigo-300 border-indigo-400/30';
+}
+
+function formatMoney(amount) {
+  return `LKR ${Number(amount || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     ordersApi
@@ -15,51 +34,188 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const totalOrders = orders.length;
+  const totalSpent = orders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+  const completedOrders = orders.filter((order) =>
+    ['delivered', 'shipped'].includes(String(order.status || '').toLowerCase())
+  ).length;
+  const processingOrders = orders.filter((order) =>
+    ['pending', 'processing'].includes(String(order.status || '').toLowerCase())
+  ).length;
+
+  const buildReceiptHtml = (order, items) => {
+    const rows = (items || [])
+      .map(
+        (item) => `
+        <tr>
+          <td style="padding:10px;border-bottom:1px solid #dbe4ff;">${item.name}</td>
+          <td style="padding:10px;border-bottom:1px solid #dbe4ff;text-align:center;">${item.quantity}</td>
+          <td style="padding:10px;border-bottom:1px solid #dbe4ff;text-align:right;">${formatMoney(item.price)}</td>
+          <td style="padding:10px;border-bottom:1px solid #dbe4ff;text-align:right;">${formatMoney(Number(item.price) * Number(item.quantity))}</td>
+        </tr>
+      `
+      )
+      .join('');
+
+    const paymentLabel = order.payment_method === 'card' ? 'Card Payment' : 'Cash on Delivery';
+    const receiptStatus = String(order.payment_status || order.status || '').toUpperCase();
+
+    return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>NeoCart Receipt #${order.id}</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f7ff; margin: 0; padding: 24px; color: #0f172a; }
+    .card { max-width: 920px; margin: 0 auto; background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12); }
+    .brand { font-size: 26px; font-weight: 800; margin: 0; color: #1d4ed8; }
+    .meta { display:flex; justify-content: space-between; gap:16px; margin-top: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    .totals { margin-top: 16px; text-align: right; font-weight: 700; }
+    .pill { display:inline-block; padding:6px 12px; border-radius:999px; background:#e0ebff; color:#1e40af; font-size:12px; font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="brand">NeoCart Payment Receipt</h1>
+    <div class="meta">
+      <div>
+        <p><strong>Order ID:</strong> #${order.id}</p>
+        <p><strong>Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
+      </div>
+      <div>
+        <p><strong>Payment:</strong> ${paymentLabel}</p>
+        <p><strong>Status:</strong> <span class="pill">${receiptStatus}</span></p>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:10px;border-bottom:2px solid #bfdbfe;">Item</th>
+          <th style="text-align:center;padding:10px;border-bottom:2px solid #bfdbfe;">Qty</th>
+          <th style="text-align:right;padding:10px;border-bottom:2px solid #bfdbfe;">Unit Price</th>
+          <th style="text-align:right;padding:10px;border-bottom:2px solid #bfdbfe;">Line Total</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="totals">Total: ${formatMoney(order.total_amount)}</p>
+  </div>
+</body>
+</html>`;
+  };
+
+  const downloadReceipt = async (orderId) => {
+    setDownloadingId(orderId);
+    try {
+      const res = await ordersApi.receipt(orderId);
+      const data = res.data?.data || {};
+      const order = data.order;
+      const items = data.items || [];
+      if (!order) {
+        return;
+      }
+
+      const html = buildReceiptHtml(order, items);
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `neocart-receipt-${order.id}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <section className="glass p-6">
-        <h1 className="text-3xl font-bold">Customer dashboard</h1>
-        <p className="mt-2 text-slate-300">Manage your account and order history.</p>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs text-slate-400">Name</p>
-            <p className="font-semibold">{user?.name}</p>
+      <section className="glass p-6 md:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200/70">Account Overview</p>
+            <h1 className="mt-2 text-3xl font-bold md:text-4xl">Welcome, {user?.name}</h1>
+            <p className="mt-2 text-slate-300">Track your purchases, order status, and account activity in one place.</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs text-slate-400">Email</p>
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+            <p className="text-xs text-slate-400">Member email</p>
             <p className="font-semibold">{user?.email}</p>
+            <p className="mt-1 text-xs capitalize text-slate-400">Role: {user?.role}</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <p className="text-xs text-slate-400">Role</p>
-            <p className="font-semibold capitalize">{user?.role}</p>
-          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-slate-400">Total Orders</p>
+            <p className="mt-2 text-2xl font-bold">{totalOrders}</p>
+          </article>
+          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-slate-400">Total Spent</p>
+            <p className="mt-2 text-2xl font-bold text-blue-300">{formatMoney(totalSpent)}</p>
+          </article>
+          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-slate-400">Completed Orders</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-300">{completedOrders}</p>
+          </article>
+          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs text-slate-400">In Progress</p>
+            <p className="mt-2 text-2xl font-bold text-amber-300">{processingOrders}</p>
+          </article>
         </div>
       </section>
 
-      <section className="glass p-6">
-        <h2 className="text-xl font-bold">Recent orders</h2>
+      <section className="glass p-6 md:p-8">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold md:text-2xl">Recent Orders</h2>
+            <p className="mt-1 text-sm text-slate-400">Latest purchases and delivery progress.</p>
+          </div>
+        </div>
         {loading ? (
-          <div className="mt-4"><LoadingSpinner label="Loading orders" /></div>
+          <div className="mt-6">
+            <LoadingSpinner label="Loading orders" />
+          </div>
         ) : orders.length === 0 ? (
-          <p className="mt-3 text-slate-400">No orders yet.</p>
+          <div className="mt-5 rounded-2xl border border-dashed border-white/20 bg-white/5 p-6 text-center">
+            <p className="text-slate-300">No orders yet.</p>
+            <p className="mt-1 text-sm text-slate-400">Place your first order to start tracking it here.</p>
+          </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-white/10 text-slate-400">
-                  <th className="py-2">Order ID</th>
-                  <th className="py-2">Amount</th>
-                  <th className="py-2">Status</th>
-                  <th className="py-2">Date</th>
+                  <th className="py-3 pr-4">Order ID</th>
+                  <th className="py-3 pr-4">Amount</th>
+                  <th className="py-3 pr-4">Status</th>
+                  <th className="py-3 pr-4">Payment</th>
+                  <th className="py-3">Date</th>
+                  <th className="py-3 text-right">Receipt</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.id} className="border-b border-white/5">
-                    <td className="py-3">#{order.id}</td>
-                    <td className="py-3">LKR {Number(order.total_amount).toFixed(2)}</td>
-                    <td className="py-3 capitalize">{order.status}</td>
-                    <td className="py-3">{new Date(order.created_at).toLocaleString()}</td>
+                  <tr key={order.id} className="border-b border-white/5 text-slate-200">
+                    <td className="py-3 pr-4 font-medium">#{order.id}</td>
+                    <td className="py-3 pr-4 font-semibold text-blue-300">{formatMoney(order.total_amount)}</td>
+                    <td className="py-3 pr-4">
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(order.status)}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4 capitalize text-slate-300">{String(order.payment_method || 'cash_on_delivery').replaceAll('_', ' ')}</td>
+                    <td className="py-3 text-slate-300">{new Date(order.created_at).toLocaleString()}</td>
+                    <td className="py-3 text-right">
+                      <button
+                        type="button"
+                        className="btn-secondary px-3 py-2 text-xs"
+                        disabled={downloadingId === order.id}
+                        onClick={() => downloadReceipt(order.id)}
+                      >
+                        {downloadingId === order.id ? 'Downloading...' : 'Download receipt'}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

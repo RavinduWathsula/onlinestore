@@ -151,7 +151,7 @@ export default function HomePage() {
 
   useEffect(() => {
     productsApi
-      .list({ page: 1, limit: 4 })
+      .list({ page: 1, limit: 12 })
       .then((res) => setFeatured(res.data.data || []))
       .catch(() => setFeatured([]));
   }, []);

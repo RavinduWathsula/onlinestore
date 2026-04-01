@@ -5,6 +5,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/store.php';
+require_once __DIR__ . '/../includes/otp.php';
+require_once __DIR__ . '/../includes/sms.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Credentials: true');

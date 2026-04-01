@@ -7,6 +7,47 @@ require_once __DIR__ . '/_bootstrap.php';
 $method = strtoupper($_SERVER['REQUEST_METHOD']);
 
 if ($method === 'GET') {
+    $productId = (int) ($_GET['id'] ?? 0);
+
+    if ($productId > 0) {
+        $stmt = db()->prepare(
+            'SELECT p.id, p.name, p.price, p.stock, p.description, p.image, p.category_id, c.name AS category_name,
+                    p.brand, p.color
+             FROM products p
+             LEFT JOIN categories c ON c.id = p.category_id
+             WHERE p.id = ?
+             LIMIT 1'
+        );
+        $stmt->bind_param('i', $productId);
+        $stmt->execute();
+        $product = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        if (!$product) {
+            respond(['ok' => false, 'message' => 'Product not found'], 404);
+        }
+
+        // Fetch product options
+        $optionsStmt = db()->prepare(
+            'SELECT option_type, option_value FROM product_options WHERE product_id = ? ORDER BY option_type, option_value'
+        );
+        $optionsStmt->bind_param('i', $productId);
+        $optionsStmt->execute();
+        $optionsResult = $optionsStmt->get_result();
+        $options = [];
+        while ($row = $optionsResult->fetch_assoc()) {
+            $type = $row['option_type'];
+            if (!isset($options[$type])) {
+                $options[$type] = [];
+            }
+            $options[$type][] = $row['option_value'];
+        }
+        $optionsStmt->close();
+
+        $product['options'] = $options;
+        respond(['ok' => true, 'data' => $product]);
+    }
+
     $search = trim((string) ($_GET['search'] ?? ''));
     $categoryId = (int) ($_GET['category'] ?? 0);
     $sort = (string) ($_GET['sort'] ?? 'latest');
@@ -49,7 +90,8 @@ if ($method === 'GET') {
     $total = (int) ($countStmt->get_result()->fetch_assoc()['total'] ?? 0);
     $countStmt->close();
 
-    $sql = "SELECT p.id, p.name, p.price, p.stock, p.description, p.image, p.category_id, c.name AS category_name
+    $sql = "SELECT p.id, p.name, p.price, p.stock, p.description, p.image, p.category_id, c.name AS category_name,
+                        p.brand, p.color
             FROM products p
             LEFT JOIN categories c ON c.id = p.category_id
             {$where}

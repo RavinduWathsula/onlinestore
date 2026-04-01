@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const isViteDev = typeof window !== 'undefined' && window.location.port === '5173';
+const isViteDev = Boolean(import.meta.env.DEV);
 const fallbackBaseUrl = isViteDev ? '/api' : '/NovaStore/api';
 
 const api = axios.create({
@@ -17,10 +17,15 @@ export const authApi = {
 
 export const productsApi = {
   list: (params) => api.get('/products.php', { params }),
+  detail: (id) => api.get('/products.php', { params: { id } }),
   add: (payload) => api.post('/add_product.php', payload),
   update: (payload) => api.put('/products.php', payload),
   remove: (id) => api.delete('/products.php', { params: { id } }),
   categories: () => api.get('/categories.php'),
+};
+
+export const reviewsApi = {
+  list: (productId) => api.get('/reviews.php', { params: { product_id: productId } }),
 };
 
 export const cartApi = {
@@ -32,7 +37,13 @@ export const cartApi = {
 
 export const ordersApi = {
   list: () => api.get('/orders.php'),
-  checkout: () => api.post('/orders.php'),
+  checkout: (payload) => api.post('/orders.php', payload),
+  receipt: (orderId) => api.get('/receipt.php', { params: { order_id: orderId } }),
+};
+
+export const otpApi = {
+  send: (phone) => api.post('/payment_otp.php', { action: 'send', phone }),
+  verify: (payload) => api.post('/payment_otp.php', { action: 'verify', ...payload }),
 };
 
 export const adminApi = {

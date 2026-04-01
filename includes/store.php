@@ -229,7 +229,7 @@ function remove_cart_item(int $userId, int $cartId): bool
     return $ok;
 }
 
-function create_order_from_cart(int $userId): ?int
+function create_order_from_cart(int $userId, array $payment = []): ?int
 {
     $items = get_cart_items($userId);
     if (!$items) {
@@ -249,8 +249,15 @@ function create_order_from_cart(int $userId): ?int
     $conn->begin_transaction();
 
     try {
-        $orderStmt = $conn->prepare('INSERT INTO orders (user_id, total_amount, status) VALUES (?, ?, "pending")');
-        $orderStmt->bind_param('id', $userId, $total);
+        $paymentMethod = strtolower(trim((string) ($payment['payment_method'] ?? 'cash_on_delivery')));
+        if (!in_array($paymentMethod, ['cash_on_delivery', 'card'], true)) {
+            $paymentMethod = 'cash_on_delivery';
+        }
+
+        $orderStatus = $paymentMethod === 'card' ? 'paid' : 'pending';
+
+        $orderStmt = $conn->prepare('INSERT INTO orders (user_id, total_amount, status) VALUES (?, ?, ?)');
+        $orderStmt->bind_param('ids', $userId, $total, $orderStatus);
         $orderStmt->execute();
         $orderId = (int) $conn->insert_id;
         $orderStmt->close();
@@ -282,9 +289,10 @@ function create_order_from_cart(int $userId): ?int
         $clearStmt->execute();
         $clearStmt->close();
 
-        $paymentMethod = 'cash_on_delivery';
-        $payStmt = $conn->prepare('INSERT INTO payments (order_id, payment_method, payment_status) VALUES (?, ?, "pending")');
-        $payStmt->bind_param('is', $orderId, $paymentMethod);
+        $paymentStatus = $paymentMethod === 'card' ? 'completed' : 'pending';
+        $payStmt = $conn->prepare('INSERT INTO payments (order_id, payment_method, payment_status, paid_at) VALUES (?, ?, ?, ?)');
+        $paidAt = $paymentStatus === 'completed' ? date('Y-m-d H:i:s') : null;
+        $payStmt->bind_param('isss', $orderId, $paymentMethod, $paymentStatus, $paidAt);
         $payStmt->execute();
         $payStmt->close();
 
