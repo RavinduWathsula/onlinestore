@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ordersApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import DotsBackground3D from '../components/DotsBackground3D';
 
 function statusClass(status) {
   const map = {
@@ -22,10 +23,11 @@ function formatMoney(amount) {
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, coupons } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [showCoupons, setShowCoupons] = useState(false);
 
   useEffect(() => {
     ordersApi
@@ -131,7 +133,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6 overflow-hidden rounded-3xl p-2">
+      <DotsBackground3D />
       <section className="glass p-6 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -172,7 +175,29 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold md:text-2xl">Recent Orders</h2>
             <p className="mt-1 text-sm text-slate-400">Latest purchases and delivery progress.</p>
           </div>
+          <button type="button" className="btn-secondary" onClick={() => setShowCoupons((value) => !value)}>
+            {showCoupons ? 'Hide coupons' : 'Coupons'}
+          </button>
         </div>
+
+        {showCoupons ? (
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <h3 className="text-lg font-semibold">Collected coupons</h3>
+            {coupons.length === 0 ? (
+              <p className="mt-2 text-sm text-slate-400">No coupons collected yet. Go to Home and collect coupons.</p>
+            ) : (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {coupons.map((coupon) => (
+                  <div key={coupon.code} className="rounded-xl border border-emerald-300/30 bg-emerald-500/10 p-3">
+                    <p className="text-sm font-semibold text-emerald-300">{coupon.code}</p>
+                    <p className="text-sm text-slate-200">{coupon.title}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
+
         {loading ? (
           <div className="mt-6">
             <LoadingSpinner label="Loading orders" />

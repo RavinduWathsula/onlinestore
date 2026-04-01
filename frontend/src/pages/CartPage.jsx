@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { cartApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import DotsBackground3D from '../components/DotsBackground3D';
 
 export default function CartPage() {
   const [items, setItems] = useState([]);
@@ -61,7 +62,8 @@ export default function CartPage() {
   if (loading) return <LoadingSpinner label="Loading cart" />;
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6 overflow-hidden rounded-3xl p-2">
+      <DotsBackground3D />
       <section className="glass p-6">
         <h1 className="text-3xl font-bold">Your Cart</h1>
         <p className="mt-2 text-slate-400">Increase or decrease quantity and see totals update automatically.</p>

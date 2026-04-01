@@ -229,6 +229,26 @@ function remove_cart_item(int $userId, int $cartId): bool
     return $ok;
 }
 
+function resolve_coupon_discount(string $couponCode, float $subtotal): array
+{
+    $normalized = strtoupper(trim($couponCode));
+    if ($normalized === '' || $subtotal <= 0) {
+        return ['code' => null, 'discount' => 0.0, 'percent' => 0.0];
+    }
+
+    if (in_array($normalized, ['FREESHIP01', 'FREESHIP02'], true)) {
+        $discount = min(450.0, $subtotal);
+        return ['code' => $normalized, 'discount' => $discount, 'percent' => 0.0];
+    }
+
+    if ($normalized === 'SAVE5ALL') {
+        $discount = round($subtotal * 0.05, 2);
+        return ['code' => $normalized, 'discount' => min($discount, $subtotal), 'percent' => 5.0];
+    }
+
+    return ['code' => null, 'discount' => 0.0, 'percent' => 0.0];
+}
+
 function create_order_from_cart(int $userId, array $payment = []): ?int
 {
     $items = get_cart_items($userId);
@@ -236,14 +256,27 @@ function create_order_from_cart(int $userId, array $payment = []): ?int
         return null;
     }
 
-    $total = 0.0;
+    $subtotal = 0.0;
     foreach ($items as $item) {
         if ((int) $item['quantity'] > (int) $item['stock']) {
             return null;
         }
 
-        $total += (float) $item['price'] * (int) $item['quantity'];
+        $subtotal += (float) $item['price'] * (int) $item['quantity'];
     }
+
+    $deliveryFee = 450.0;
+    $couponCode = (string) ($payment['coupon_code'] ?? '');
+    $coupon = resolve_coupon_discount($couponCode, $subtotal);
+    $discountAmount = (float) $coupon['discount'];
+
+    if (in_array((string) $coupon['code'], ['FREESHIP01', 'FREESHIP02'], true)) {
+        $discountAmount = min($deliveryFee, $subtotal + $deliveryFee);
+    }
+
+    $discountPercent = (float) $coupon['percent'];
+    $appliedCouponCode = $coupon['code'];
+    $total = max(0.0, $subtotal + $deliveryFee - $discountAmount);
 
     $conn = db();
     $conn->begin_transaction();
@@ -256,8 +289,8 @@ function create_order_from_cart(int $userId, array $payment = []): ?int
 
         $orderStatus = $paymentMethod === 'card' ? 'paid' : 'pending';
 
-        $orderStmt = $conn->prepare('INSERT INTO orders (user_id, total_amount, status) VALUES (?, ?, ?)');
-        $orderStmt->bind_param('ids', $userId, $total, $orderStatus);
+        $orderStmt = $conn->prepare('INSERT INTO orders (user_id, total_amount, status, subtotal_amount, discount_amount, discount_percent, coupon_code) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $orderStmt->bind_param('idsddds', $userId, $total, $orderStatus, $subtotal, $discountAmount, $discountPercent, $appliedCouponCode);
         $orderStmt->execute();
         $orderId = (int) $conn->insert_id;
         $orderStmt->close();

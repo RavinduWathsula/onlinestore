@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cartApi, ordersApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+
+const DELIVERY_FEE = 450;
 
 function formatMoney(amount) {
   return `LKR ${Number(amount || 0).toLocaleString(undefined, {
@@ -43,6 +46,7 @@ function isValidSriLankaPhone(value) {
 }
 
 export default function CheckoutPage() {
+  const { coupons, removeCoupon } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [summary, setSummary] = useState({ total: 0, count: 0 });
   const [loadingCart, setLoadingCart] = useState(true);
@@ -53,6 +57,7 @@ export default function CheckoutPage() {
   const [expiryDate, setExpiryDate] = useState('');
   const [pin, setPin] = useState('');
   const [phone, setPhone] = useState('');
+  const [selectedCoupon, setSelectedCoupon] = useState('');
   const [smsMessage, setSmsMessage] = useState('');
   const [invoice, setInvoice] = useState(null);
   const { showToast } = useToast();
@@ -83,6 +88,15 @@ export default function CheckoutPage() {
       pin.length >= 3
     );
   }, [cardNumber, expiryDate, pin, phone]);
+
+  const subtotal = Number(summary.total || 0);
+  const activeCoupon = coupons.find((coupon) => coupon.code === selectedCoupon) || null;
+  const couponDiscount = activeCoupon
+    ? activeCoupon.type === 'percent'
+      ? (subtotal * Number(activeCoupon.value || 0)) / 100
+      : Number(activeCoupon.value || 0)
+    : 0;
+  const totalPayable = Math.max(0, subtotal + DELIVERY_FEE - couponDiscount);
 
   const buildInvoiceHtml = (bill) => {
     const rows = bill.items
@@ -125,6 +139,7 @@ export default function CheckoutPage() {
       </div>
       <div>
         <p><strong>Payment:</strong> ${bill.paymentMethodLabel}</p>
+        ${bill.couponCode ? `<p><strong>Coupon:</strong> ${bill.couponCode}</p>` : ''}
       </div>
     </div>
     <table>
@@ -138,6 +153,8 @@ export default function CheckoutPage() {
       </thead>
       <tbody>${rows}</tbody>
     </table>
+    <p style="margin-top:12px;text-align:right;color:#bfdbfe;">Subtotal: ${formatMoney(bill.subtotal ?? bill.total)}</p>
+    <p style="margin-top:6px;text-align:right;color:#86efac;">Discount: -${formatMoney(bill.discountAmount ?? 0)}</p>
     <p class="totals">Total Paid: ${formatMoney(bill.total)}</p>
     <p class="note">Thank you for shopping with NeoCart. Keep this bill for your records.</p>
   </div>
@@ -174,17 +191,18 @@ export default function CheckoutPage() {
         paymentMethod === 'card'
           ? {
               payment_method: 'card',
+              coupon_code: selectedCoupon || undefined,
               card_type: cardType,
               card_number: onlyCardDigits(cardNumber),
               expiry_date: expiryDate,
               pin,
               phone: normalizePhoneInput(phone),
             }
-          : { payment_method: 'cash_on_delivery' };
+          : { payment_method: 'cash_on_delivery', coupon_code: selectedCoupon || undefined };
 
       const res = await ordersApi.checkout(payload);
       const orderId = res.data.order_id;
-      const amount = Number(summary.total || 0);
+      const amount = Number(res.data?.order?.total_amount ?? totalPayable);
       const paymentMethodLabel =
         paymentMethod === 'card'
           ? `${cardLabel(cardType)} • ****${onlyCardDigits(cardNumber).slice(-4)}`
@@ -205,12 +223,20 @@ export default function CheckoutPage() {
           price: Number(item.price),
           total: Number(item.quantity) * Number(item.price),
         })),
+        subtotal: Number(res.data.order?.subtotal_amount ?? subtotal),
+        discountAmount: Number(res.data.order?.discount_amount ?? couponDiscount),
+        couponCode: res.data.order?.coupon_code || selectedCoupon || null,
         total: amount,
         paymentMethodLabel,
       });
 
+      if (selectedCoupon) {
+        removeCoupon(selectedCoupon);
+      }
+
       setCartItems([]);
       setSummary({ total: 0, count: 0 });
+      setSelectedCoupon('');
       showToast(`Order #${orderId} created successfully`);
     } catch (error) {
       const message = error?.response?.data?.message || 'Checkout failed';
@@ -268,17 +294,40 @@ export default function CheckoutPage() {
             </div>
             <div className="mt-2 flex items-center justify-between text-sm text-slate-300">
               <span>Delivery</span>
-              <span>{formatMoney(0)}</span>
+              <span>{formatMoney(DELIVERY_FEE)}</span>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-sm text-emerald-300">
+              <span>Coupon discount</span>
+              <span>- {formatMoney(couponDiscount)}</span>
             </div>
             <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3 text-lg font-bold">
               <span>Total</span>
-              <span className="text-blue-300">{formatMoney(summary.total)}</span>
+              <span className="text-blue-300">{formatMoney(totalPayable)}</span>
             </div>
           </div>
         </div>
 
         <div className="glass p-6">
           <h2 className="text-xl font-semibold">Payment</h2>
+          <div className="mt-4">
+            <label className="mb-2 block text-sm text-slate-300">Choose coupon (optional)</label>
+            <select
+              className="input-field"
+              value={selectedCoupon}
+              onChange={(e) => setSelectedCoupon(e.target.value)}
+            >
+              <option value="">No coupon</option>
+              {coupons.map((coupon) => (
+                <option key={coupon.code} value={coupon.code}>
+                  {coupon.code} - {coupon.title}
+                </option>
+              ))}
+            </select>
+            {!coupons.length ? (
+              <p className="mt-2 text-xs text-slate-400">Collect coupons from the Home page first.</p>
+            ) : null}
+          </div>
+
           <div className="mt-4 space-y-3">
             <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
               <span>Cash on Delivery</span>
@@ -359,6 +408,9 @@ export default function CheckoutPage() {
             </button>
           </div>
           <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+            {invoice.couponCode ? (
+              <p className="mb-2 text-sm text-emerald-300">Coupon used: {invoice.couponCode}</p>
+            ) : null}
             <div className="flex items-center justify-between text-sm text-slate-300">
               <span>Total Paid</span>
               <span className="text-xl font-bold text-blue-300">{formatMoney(invoice.total)}</span>

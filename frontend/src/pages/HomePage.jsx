@@ -2,6 +2,8 @@ import { ArrowRight, Compass, Rocket, ShieldCheck, Sparkles, Star, Truck } from 
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { productsApi } from '../services/api';
 
 const fallbackFeatured = [
@@ -142,7 +144,33 @@ const spotlightFeatures = [
   },
 ];
 
+const couponDrops = [
+  {
+    code: 'FREESHIP01',
+    title: 'Free Delivery Coupon #1',
+    description: 'Removes LKR 450 delivery fee at checkout for all products.',
+    type: 'free_delivery',
+    value: 450,
+  },
+  {
+    code: 'FREESHIP02',
+    title: 'Free Delivery Coupon #2',
+    description: 'Second free-delivery coupon valid for any checkout.',
+    type: 'free_delivery',
+    value: 450,
+  },
+  {
+    code: 'SAVE5ALL',
+    title: '5% Off Coupon',
+    description: 'Get 5% discount on product subtotal for all products.',
+    type: 'percent',
+    value: 5,
+  },
+];
+
 export default function HomePage() {
+  const { user, coupons, addCoupon } = useAuth();
+  const { showToast } = useToast();
   const [featured, setFeatured] = useState([]);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const canvasRef = useRef(null);
@@ -423,6 +451,48 @@ export default function HomePage() {
             <p className="mt-2 text-sm text-slate-300">{feature.subtitle}</p>
           </article>
         ))}
+      </section>
+
+      <section className="home-section home-section--featured space-y-5">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Coupon drops</p>
+            <h2 className="text-2xl font-bold">Collect discounts for checkout</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Collect two free delivery coupons and one 5% coupon. You can use one coupon per order.
+            </p>
+          </div>
+          <Link to="/dashboard" className="text-sm text-blue-300 hover:text-blue-200">
+            View in dashboard
+          </Link>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {couponDrops.map((coupon) => {
+            const collected = coupons.some((item) => item.code === coupon.code);
+            return (
+              <article key={coupon.code} className="deal-card deal-card--blue">
+                <p className="text-xs uppercase tracking-[0.2em] text-blue-200/80">{coupon.code}</p>
+                <h3 className="mt-2 text-lg font-bold">{coupon.title}</h3>
+                <p className="mt-2 text-sm text-slate-300">{coupon.description}</p>
+                <button
+                  type="button"
+                  className="btn-primary mt-4 w-full"
+                  disabled={collected}
+                  onClick={() => {
+                    if (!user) {
+                      showToast('Login to collect coupons', 'error');
+                      return;
+                    }
+                    const ok = addCoupon(coupon);
+                    showToast(ok ? `${coupon.code} collected` : `${coupon.code} already collected`);
+                  }}
+                >
+                  {collected ? 'Collected' : 'Collect coupon'}
+                </button>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
       <section className="home-section space-y-5">

@@ -15,7 +15,7 @@ if ($orderId <= 0) {
 $isAdmin = (($user['role'] ?? 'customer') === 'admin');
 
 if ($isAdmin) {
-    $orderStmt = db()->prepare('SELECT o.id, o.user_id, o.total_amount, o.status, o.created_at, p.payment_method, p.payment_status, p.paid_at, u.name AS customer_name, u.email AS customer_email
+    $orderStmt = db()->prepare('SELECT o.id, o.user_id, o.total_amount, o.subtotal_amount, o.discount_amount, o.discount_percent, o.coupon_code, o.status, o.created_at, p.payment_method, p.payment_status, p.paid_at, u.name AS customer_name, u.email AS customer_email
                                 FROM orders o
                                 LEFT JOIN payments p ON p.order_id = o.id
                                 INNER JOIN users u ON u.id = o.user_id
@@ -23,7 +23,7 @@ if ($isAdmin) {
                                 LIMIT 1');
     $orderStmt->bind_param('i', $orderId);
 } else {
-    $orderStmt = db()->prepare('SELECT o.id, o.user_id, o.total_amount, o.status, o.created_at, p.payment_method, p.payment_status, p.paid_at, u.name AS customer_name, u.email AS customer_email
+    $orderStmt = db()->prepare('SELECT o.id, o.user_id, o.total_amount, o.subtotal_amount, o.discount_amount, o.discount_percent, o.coupon_code, o.status, o.created_at, p.payment_method, p.payment_status, p.paid_at, u.name AS customer_name, u.email AS customer_email
                                 FROM orders o
                                 LEFT JOIN payments p ON p.order_id = o.id
                                 INNER JOIN users u ON u.id = o.user_id

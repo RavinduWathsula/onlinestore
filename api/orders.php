@@ -10,6 +10,7 @@ $method = strtoupper($_SERVER['REQUEST_METHOD']);
 if ($method === 'POST') {
     $data = json_input();
     $paymentMethod = strtolower(trim((string) ($data['payment_method'] ?? 'cash_on_delivery')));
+    $couponCode = strtoupper(trim((string) ($data['coupon_code'] ?? '')));
 
     if (!in_array($paymentMethod, ['cash_on_delivery', 'card'], true)) {
         respond(['ok' => false, 'message' => 'Invalid payment method'], 422);
@@ -44,12 +45,15 @@ if ($method === 'POST') {
         }
     }
 
-    $orderId = create_order_from_cart((int) $user['id'], ['payment_method' => $paymentMethod]);
+    $orderId = create_order_from_cart((int) $user['id'], [
+        'payment_method' => $paymentMethod,
+        'coupon_code' => $couponCode,
+    ]);
     if ($orderId === null) {
         respond(['ok' => false, 'message' => 'Checkout failed'], 409);
     }
 
-    $summaryStmt = db()->prepare('SELECT total_amount, created_at FROM orders WHERE id = ? AND user_id = ? LIMIT 1');
+    $summaryStmt = db()->prepare('SELECT total_amount, subtotal_amount, discount_amount, discount_percent, coupon_code, created_at FROM orders WHERE id = ? AND user_id = ? LIMIT 1');
     $uid = (int) $user['id'];
     $summaryStmt->bind_param('ii', $orderId, $uid);
     $summaryStmt->execute();
@@ -73,7 +77,7 @@ if ($method === 'POST') {
 
 if ($method === 'GET') {
     if (($user['role'] ?? 'customer') === 'admin') {
-        $sql = 'SELECT o.id, o.total_amount, o.status, o.created_at, u.name AS customer_name, u.email,
+        $sql = 'SELECT o.id, o.total_amount, o.subtotal_amount, o.discount_amount, o.discount_percent, o.coupon_code, o.status, o.created_at, u.name AS customer_name, u.email,
                        p.payment_method, p.payment_status, p.paid_at
                 FROM orders o
                 INNER JOIN users u ON u.id = o.user_id
@@ -83,7 +87,7 @@ if ($method === 'GET') {
         respond(['ok' => true, 'data' => $rows]);
     }
 
-    $stmt = db()->prepare('SELECT o.id, o.total_amount, o.status, o.created_at, p.payment_method, p.payment_status, p.paid_at
+    $stmt = db()->prepare('SELECT o.id, o.total_amount, o.subtotal_amount, o.discount_amount, o.discount_percent, o.coupon_code, o.status, o.created_at, p.payment_method, p.payment_status, p.paid_at
                           FROM orders o
                           LEFT JOIN payments p ON p.order_id = o.id
                           WHERE o.user_id = ?

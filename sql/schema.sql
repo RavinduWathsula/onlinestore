@@ -53,12 +53,22 @@ CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
+    subtotal_amount DECIMAL(10,2) NULL,
+    discount_amount DECIMAL(10,2) DEFAULT 0,
+    discount_percent DECIMAL(5,2) DEFAULT 0,
+    coupon_code VARCHAR(40) NULL,
     status ENUM('pending','paid','shipped','delivered','cancelled') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_orders_user
         FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+ALTER TABLE orders
+    ADD COLUMN IF NOT EXISTS subtotal_amount DECIMAL(10,2) NULL,
+    ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(10,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS discount_percent DECIMAL(5,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(40) NULL;
 
 CREATE TABLE IF NOT EXISTS order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
