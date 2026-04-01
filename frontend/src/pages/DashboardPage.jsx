@@ -196,7 +196,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200/70">Account Overview</p>
-            <h1 className="mt-2 text-3xl font-bold md:text-4xl">Welcome, {user?.name}</h1>
+            <h1 className="mt-2 text-3xl font-bold md:text-4xl bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">Welcome, {user?.name}</h1>
             <p className="mt-2 text-slate-300">Track your purchases, order status, and account activity in one place.</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
@@ -205,7 +205,7 @@ export default function DashboardPage() {
             <p className="mt-1 text-xs capitalize text-slate-400">Role: {user?.role}</p>
             <button
               type="button"
-              className="btn-secondary mt-3 px-3 py-2 text-xs"
+              className="btn-secondary mt-3 px-3 py-2 text-xs hover:border-cyan-400/60 hover:from-cyan-500/30 hover:to-blue-500/30"
               onClick={() => setShowProfileEditor((value) => !value)}
             >
               {showProfileEditor ? 'Hide Profile Edit' : 'Edit Profile'}
@@ -214,19 +214,19 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <article className="dashboard-stat-card">
             <p className="text-xs text-slate-400">Total Orders</p>
             <p className="mt-2 text-2xl font-bold">{totalOrders}</p>
           </article>
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <article className="dashboard-stat-card">
             <p className="text-xs text-slate-400">Total Spent</p>
             <p className="mt-2 text-2xl font-bold text-blue-300">{formatMoney(totalSpent)}</p>
           </article>
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <article className="dashboard-stat-card">
             <p className="text-xs text-slate-400">Completed Orders</p>
             <p className="mt-2 text-2xl font-bold text-emerald-300">{completedOrders}</p>
           </article>
-          <article className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <article className="dashboard-stat-card">
             <p className="text-xs text-slate-400">In Progress</p>
             <p className="mt-2 text-2xl font-bold text-amber-300">{processingOrders}</p>
           </article>
@@ -296,14 +296,14 @@ export default function DashboardPage() {
         </div>
 
         {showCoupons ? (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mt-4 rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 p-4">
             <h3 className="text-lg font-semibold">Collected coupons</h3>
             {coupons.length === 0 ? (
               <p className="mt-2 text-sm text-slate-400">No coupons collected yet. Go to Home and collect coupons.</p>
             ) : (
               <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {coupons.map((coupon) => (
-                  <div key={coupon.code} className="rounded-xl border border-emerald-300/30 bg-emerald-500/10 p-3">
+                  <div key={coupon.code} className="rounded-xl border border-emerald-300/50 bg-emerald-500/15 p-3 hover:bg-emerald-500/25 hover:border-emerald-300/70 transition-all hover:scale-105 cursor-pointer">
                     <p className="text-sm font-semibold text-emerald-300">{coupon.code}</p>
                     <p className="text-sm text-slate-200">{coupon.title}</p>
                   </div>

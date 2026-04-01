@@ -2,6 +2,7 @@ import { ArrowRight, Compass, Rocket, ShieldCheck, Sparkles, Star, Truck } from 
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import SupportAgentWidget from '../components/SupportAgentWidget';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { productsApi } from '../services/api';
@@ -372,7 +373,7 @@ export default function HomePage() {
             <p className="hero-eyebrow mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-400/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-blue-200">
               NeoCart premium marketplace
             </p>
-            <h1 className="hero-title text-4xl font-extrabold leading-tight md:text-6xl">
+            <h1 className="hero-title hero-title--glow text-4xl font-extrabold leading-tight md:text-6xl">
               Experience shopping in a more immersive way.
             </h1>
             <p className="mt-4 max-w-xl text-slate-300 md:text-lg">
@@ -382,20 +383,22 @@ export default function HomePage() {
               <Link to="/products" className="btn-primary gap-2 shadow-[0_10px_40px_rgba(37,99,235,0.3)]">
                 Start shopping <ArrowRight size={16} />
               </Link>
-              <Link to="/register" className="btn-secondary">
-                Join NeoCart
-              </Link>
+              {!user && (
+                <Link to="/register" className="btn-secondary">
+                  Join NeoCart
+                </Link>
+              )}
             </div>
             <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 text-center">
-              <div className="stat-chip">
+              <div className="stat-chip stat-chip--animated">
                 <p className="text-xl font-bold">12K+</p>
                 <p className="text-xs text-slate-400">Products</p>
               </div>
-              <div className="stat-chip">
+              <div className="stat-chip stat-chip--animated stat-chip--delay-1">
                 <p className="text-xl font-bold">850+</p>
                 <p className="text-xs text-slate-400">Vendors</p>
               </div>
-              <div className="stat-chip">
+              <div className="stat-chip stat-chip--animated stat-chip--delay-2">
                 <p className="text-xl font-bold">4.9</p>
                 <p className="text-xs text-slate-400">User rating</p>
               </div>
@@ -592,6 +595,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      <SupportAgentWidget />
     </div>
   );
 }

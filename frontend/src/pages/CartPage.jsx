@@ -65,7 +65,7 @@ export default function CartPage() {
     <div className="relative space-y-6 overflow-hidden rounded-3xl p-2">
       <DotsBackground3D />
       <section className="glass p-6">
-        <h1 className="text-3xl font-bold">Your Cart</h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Your Cart</h1>
         <p className="mt-2 text-slate-400">Increase or decrease quantity and see totals update automatically.</p>
       </section>
       <section className="glass p-6">
@@ -74,7 +74,7 @@ export default function CartPage() {
         ) : (
           <div className="space-y-4">
             {items.map((item) => (
-              <article key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <article key={item.id} className="cart-item-card">
                 <div className="flex flex-wrap items-center gap-4">
                   <img
                     src={item.image || 'https://images.unsplash.com/photo-1511385348-a52b4a160dc2?auto=format&fit=crop&w=200&q=80'}
@@ -138,7 +138,7 @@ export default function CartPage() {
           </div>
         )}
       </section>
-      <section className="glass flex flex-wrap items-center justify-between gap-4 p-6">
+      <section className="cart-summary-total flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
           <p className="text-sm text-slate-400">Items: {summary.count}</p>
           <h2 className="text-3xl font-bold text-blue-300">LKR {Number(summary.total || 0).toFixed(2)}</h2>

@@ -12,6 +12,12 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Scroll to top when page loads
+  const [scrolled] = useState(() => {
+    window.scrollTo(0, 0);
+    return true;
+  });
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setErrors({});

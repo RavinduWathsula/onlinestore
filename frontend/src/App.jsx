@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -31,6 +32,11 @@ export default function App() {
   const location = useLocation();
   const isAuthPage =
     location.pathname.startsWith('/login') || location.pathname.startsWith('/register');
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <div className="page-bg relative min-h-screen text-white">
