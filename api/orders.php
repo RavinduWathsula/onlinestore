@@ -21,7 +21,6 @@ if ($method === 'POST') {
         $expiryDate = trim((string) ($data['expiry_date'] ?? ''));
         $pin = preg_replace('/\D+/', '', (string) ($data['pin'] ?? ''));
         $phone = (string) ($data['phone'] ?? '');
-        $otpId = (int) ($data['otp_id'] ?? 0);
 
         if (!in_array($cardType, ['visa', 'mastercard', 'lankaqr'], true)) {
             respond(['ok' => false, 'message' => 'Unsupported Sri Lankan card type'], 422);
@@ -42,10 +41,6 @@ if ($method === 'POST') {
         $normalizedPhone = normalize_sri_lanka_phone($phone);
         if ($normalizedPhone === null) {
             respond(['ok' => false, 'message' => 'Invalid phone number'], 422);
-        }
-
-        if ($otpId <= 0 || !consume_verified_otp((int) $user['id'], $otpId, $normalizedPhone)) {
-            respond(['ok' => false, 'message' => 'OTP verification required'], 422);
         }
     }
 

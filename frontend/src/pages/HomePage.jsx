@@ -335,16 +335,16 @@ export default function HomePage() {
   return (
     <div className="home-shell relative space-y-14">
       <canvas ref={pageCanvasRef} className="page-canvas-3d" aria-hidden="true" />
-      <section className="home-hero relative overflow-hidden rounded-3xl border border-white/10 p-8 md:p-12">
+      <section className="home-hero home-section relative overflow-hidden rounded-3xl border border-white/10 p-8 md:p-12">
         <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
         <div className="pointer-events-none absolute -left-16 top-12 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
         <div className="pointer-events-none absolute -right-16 bottom-10 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl" />
         <div className="relative z-10 grid gap-8 md:grid-cols-2 md:items-center">
           <div>
-            <p className="mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-400/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-blue-200">
+            <p className="hero-eyebrow mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-400/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-blue-200">
               NeoCart premium marketplace
             </p>
-            <h1 className="text-4xl font-extrabold leading-tight md:text-6xl">
+            <h1 className="hero-title text-4xl font-extrabold leading-tight md:text-6xl">
               Experience shopping in a more immersive way.
             </h1>
             <p className="mt-4 max-w-xl text-slate-300 md:text-lg">
@@ -395,7 +395,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="space-y-5">
+      <section className="home-section home-section--featured space-y-5">
         <div className="flex items-end justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Highlighted now</p>
@@ -415,7 +415,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="home-section grid gap-4 md:grid-cols-3">
         {spotlightFeatures.map((feature) => (
           <article key={feature.title} className={`deal-card ${feature.tone}`}>
             <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">{feature.title}</p>
@@ -425,7 +425,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      <section className="space-y-5">
+      <section className="home-section space-y-5">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Discover more</p>
           <h2 className="text-2xl font-bold">Featured categories</h2>
@@ -441,8 +441,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <div className="glass p-6">
+      <section className="home-section grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+        <div className="glass home-subpanel p-6">
           <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Why NeoCart</p>
           <h2 className="mt-2 text-2xl font-bold">Built for speed, trust, and better buying.</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -461,7 +461,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="glass p-6">
+        <div className="glass home-subpanel p-6">
           <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Customer voices</p>
           <blockquote className="mt-3 min-h-[120px] text-lg text-slate-100 transition-all duration-500">
             "{testimonials[activeTestimonial].text}"
@@ -483,7 +483,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="glass overflow-hidden p-6 md:p-8">
+      <section className="glass home-section overflow-hidden p-6 md:p-8">
         <div className="review-head">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Trusted by shoppers</p>

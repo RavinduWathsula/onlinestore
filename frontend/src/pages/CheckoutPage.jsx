@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { cartApi, ordersApi, otpApi } from '../services/api';
+import { cartApi, ordersApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
 
 function formatMoney(amount) {
@@ -19,6 +19,29 @@ function cardLabel(cardType) {
   return map[cardType] || 'Card';
 }
 
+function onlyCardDigits(value) {
+  return String(value || '').replace(/\D+/g, '').slice(0, 16);
+}
+
+function formatCardNumber(value) {
+  return onlyCardDigits(value)
+    .replace(/(\d{4})(?=\d)/g, '$1 ')
+    .trim();
+}
+
+function normalizePhoneInput(value) {
+  const raw = String(value || '').trim();
+  if (raw.startsWith('+')) {
+    return '+' + raw.slice(1).replace(/\D+/g, '');
+  }
+  return raw.replace(/\D+/g, '');
+}
+
+function isValidSriLankaPhone(value) {
+  const normalized = normalizePhoneInput(value);
+  return /^(07\d{8}|94\d{9}|\+94\d{9})$/.test(normalized);
+}
+
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState([]);
   const [summary, setSummary] = useState({ total: 0, count: 0 });
@@ -30,12 +53,7 @@ export default function CheckoutPage() {
   const [expiryDate, setExpiryDate] = useState('');
   const [pin, setPin] = useState('');
   const [phone, setPhone] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [otpId, setOtpId] = useState(0);
-  const [otpVerified, setOtpVerified] = useState(false);
   const [smsMessage, setSmsMessage] = useState('');
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [invoice, setInvoice] = useState(null);
   const { showToast } = useToast();
 
@@ -56,64 +74,15 @@ export default function CheckoutPage() {
     loadCart();
   }, []);
 
-  const canSendOtp = useMemo(() => {
-    const digits = cardNumber.replace(/\D+/g, '');
-    const phoneDigits = phone.replace(/\D+/g, '');
+  const canPayWithCard = useMemo(() => {
+    const digits = onlyCardDigits(cardNumber);
     return (
       digits.length === 16 &&
-      /^(0?7\d{8}|947\d{8})$/.test(phoneDigits) &&
+      isValidSriLankaPhone(phone) &&
       /^(0[1-9]|1[0-2])\/[0-9]{2}$/.test(expiryDate) &&
       pin.length >= 3
     );
   }, [cardNumber, expiryDate, pin, phone]);
-
-  const sendOtp = async () => {
-    if (!canSendOtp) {
-      showToast('Enter valid 16-digit card, expiry, PIN, and Sri Lankan phone number', 'error');
-      return;
-    }
-
-    setSendingOtp(true);
-    try {
-      const response = await otpApi.send(phone);
-      const data = response.data?.data || {};
-      setOtpId(Number(data.otp_id || 0));
-      setOtpCode('');
-      setOtpVerified(false);
-      setSmsMessage(`OTP sent to ${data.phone || phone}. Please check your SMS inbox.`);
-      showToast(response.data?.message || 'OTP sent to your phone');
-    } catch (error) {
-      const message = error?.response?.data?.message || 'Failed to send OTP to phone';
-      showToast(message, 'error');
-    } finally {
-      setSendingOtp(false);
-    }
-  };
-
-  const verifyOtp = async () => {
-    if (!otpId) {
-      showToast('Send OTP first', 'error');
-      return;
-    }
-
-    if (otpCode.length !== 6) {
-      showToast('Enter the 6-digit OTP code', 'error');
-      return;
-    }
-
-    setVerifyingOtp(true);
-    try {
-      await otpApi.verify({ otp_id: otpId, phone, otp_code: otpCode });
-      setOtpVerified(true);
-      showToast('OTP verified successfully');
-    } catch (error) {
-      setOtpVerified(false);
-      const message = error?.response?.data?.message || 'Invalid OTP code';
-      showToast(message, 'error');
-    } finally {
-      setVerifyingOtp(false);
-    }
-  };
 
   const buildInvoiceHtml = (bill) => {
     const rows = bill.items
@@ -135,13 +104,15 @@ export default function CheckoutPage() {
   <meta charset="utf-8" />
   <title>NeoCart Bill #${bill.orderId}</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f7ff; margin: 0; padding: 24px; color: #0f172a; }
-    .card { max-width: 920px; margin: 0 auto; background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12); }
-    .brand { font-size: 26px; font-weight: 800; margin: 0; color: #1d4ed8; }
+    body { font-family: Arial, sans-serif; background: radial-gradient(circle at top right, #1d4ed8 0%, #0f172a 45%, #050816 100%); margin: 0; padding: 28px; color: #e2e8f0; }
+    .card { max-width: 920px; margin: 0 auto; background: linear-gradient(145deg, rgba(14,24,54,0.96), rgba(8,12,32,0.96)); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 22px; padding: 28px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45); }
+    .brand { font-size: 28px; font-weight: 800; margin: 0; color: #93c5fd; letter-spacing: 0.5px; }
     .meta { display:flex; justify-content: space-between; gap:16px; margin-top: 14px; }
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-    .totals { margin-top: 16px; text-align: right; font-weight: 700; }
-    .pill { display:inline-block; padding:6px 12px; border-radius:999px; background:#e0ebff; color:#1e40af; font-size:12px; font-weight:700; }
+    .totals { margin-top: 16px; text-align: right; font-weight: 800; font-size: 22px; color: #93c5fd; }
+    th { color: #cbd5e1; }
+    td { color: #e2e8f0; }
+    .note { margin-top: 12px; font-size: 12px; color: #94a3b8; }
   </style>
 </head>
 <body>
@@ -151,10 +122,9 @@ export default function CheckoutPage() {
       <div>
         <p><strong>Order ID:</strong> #${bill.orderId}</p>
         <p><strong>Date:</strong> ${new Date(bill.date).toLocaleString()}</p>
-      </section>
+      </div>
       <div>
         <p><strong>Payment:</strong> ${bill.paymentMethodLabel}</p>
-        <p><strong>Status:</strong> <span class="pill">PAID SUCCESSFULLY</span></p>
       </div>
     </div>
     <table>
@@ -169,6 +139,7 @@ export default function CheckoutPage() {
       <tbody>${rows}</tbody>
     </table>
     <p class="totals">Total Paid: ${formatMoney(bill.total)}</p>
+    <p class="note">Thank you for shopping with NeoCart. Keep this bill for your records.</p>
   </div>
 </body>
 </html>`;
@@ -192,8 +163,8 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (paymentMethod === 'card' && !otpVerified) {
-      showToast('Verify OTP before completing card payment', 'error');
+    if (paymentMethod === 'card' && !canPayWithCard) {
+      showToast('Enter valid 16-digit card, expiry, PIN, and Sri Lankan phone number', 'error');
       return;
     }
 
@@ -204,11 +175,10 @@ export default function CheckoutPage() {
           ? {
               payment_method: 'card',
               card_type: cardType,
-              card_number: cardNumber,
+              card_number: onlyCardDigits(cardNumber),
               expiry_date: expiryDate,
               pin,
-              phone,
-              otp_id: otpId,
+              phone: normalizePhoneInput(phone),
             }
           : { payment_method: 'cash_on_delivery' };
 
@@ -217,11 +187,13 @@ export default function CheckoutPage() {
       const amount = Number(summary.total || 0);
       const paymentMethodLabel =
         paymentMethod === 'card'
-          ? `${cardLabel(cardType)} • ****${cardNumber.replace(/\D+/g, '').slice(-4)}`
+          ? `${cardLabel(cardType)} • ****${onlyCardDigits(cardNumber).slice(-4)}`
           : 'Cash on Delivery';
 
       if (paymentMethod === 'card') {
-        setSmsMessage(`SMS to ${phone}: Payment successful for ${formatMoney(amount)}. Ref: #${orderId}.`);
+        setSmsMessage(`SMS to ${normalizePhoneInput(phone)}: Payment successful for ${formatMoney(amount)}. Ref: #${orderId}.`);
+      } else {
+        setSmsMessage(`Order #${orderId} placed with Cash on Delivery. Total payable: ${formatMoney(amount)}.`);
       }
 
       setInvoice({
@@ -260,7 +232,7 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <section className="glass p-6">
         <h1 className="text-3xl font-bold">Secure Checkout</h1>
-        <p className="mt-2 text-slate-300">Choose payment type, verify OTP for card payments, and download your payment bill.</p>
+        <p className="mt-2 text-slate-300">Choose payment type, complete payment securely, and download your creative receipt.</p>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -327,12 +299,13 @@ export default function CheckoutPage() {
               </select>
               <input
                 className="input-field"
-                placeholder="Card number (16 digits)"
-                value={cardNumber}
+                placeholder="Card number (1234 5678 9012 3456)"
+                value={formatCardNumber(cardNumber)}
+                inputMode="numeric"
+                maxLength={19}
                 onChange={(e) => {
-                  const digits = e.target.value.replace(/\D+/g, '').slice(0, 16);
+                  const digits = onlyCardDigits(e.target.value);
                   setCardNumber(digits);
-                  setOtpVerified(false);
                 }}
               />
               <div className="grid grid-cols-2 gap-3">
@@ -340,19 +313,13 @@ export default function CheckoutPage() {
                   className="input-field"
                   placeholder="MM/YY"
                   value={expiryDate}
-                  onChange={(e) => {
-                    setExpiryDate(e.target.value);
-                    setOtpVerified(false);
-                  }}
+                  onChange={(e) => setExpiryDate(e.target.value)}
                 />
                 <input
                   className="input-field"
                   placeholder="PIN"
                   value={pin}
-                  onChange={(e) => {
-                    setPin(e.target.value.replace(/\D+/g, '').slice(0, 4));
-                    setOtpVerified(false);
-                  }}
+                  onChange={(e) => setPin(e.target.value.replace(/\D+/g, '').slice(0, 4))}
                   type="password"
                 />
               </div>
@@ -360,26 +327,10 @@ export default function CheckoutPage() {
                 className="input-field"
                 placeholder="Sri Lanka phone number (07XXXXXXXX)"
                 value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value);
-                  setOtpVerified(false);
-                }}
+                inputMode="tel"
+                onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
               />
-              <div className="grid grid-cols-[1fr_auto] gap-2">
-                <input
-                  className="input-field"
-                  placeholder="Enter OTP"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D+/g, '').slice(0, 6))}
-                />
-                <button type="button" className="btn-secondary" onClick={verifyOtp} disabled={verifyingOtp || !otpId}>
-                  {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
-                </button>
-              </div>
-              <button type="button" className="btn-secondary w-full" onClick={sendOtp} disabled={sendingOtp}>
-                {sendingOtp ? 'Sending OTP...' : 'Send OTP to Phone'}
-              </button>
-              {otpVerified && <p className="text-sm text-emerald-300">OTP verified. Card payment is authorized.</p>}
+              <p className="text-xs text-slate-400">Card must be exactly 16 digits in 4-4-4-4 format.</p>
             </div>
           )}
 

@@ -55,9 +55,20 @@ function send_sms_message(string $toPhone, string $message): array
     $from = twilio_from_number();
 
     if ($sid === '' || $token === '' || $from === '') {
+        $missing = [];
+        if ($sid === '') {
+            $missing[] = 'TWILIO_ACCOUNT_SID';
+        }
+        if ($token === '') {
+            $missing[] = 'TWILIO_AUTH_TOKEN';
+        }
+        if ($from === '') {
+            $missing[] = 'TWILIO_FROM_NUMBER';
+        }
+
         return [
             'ok' => false,
-            'message' => 'SMS gateway is not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_FROM_NUMBER.',
+            'message' => 'SMS gateway is not configured. Missing: ' . implode(', ', $missing) . '.',
         ];
     }
 
