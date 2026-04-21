@@ -5,7 +5,7 @@ import ProductCard from '../components/ProductCard';
 import SupportAgentWidget from '../components/SupportAgentWidget';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { productsApi } from '../services/api';
+import { couponsApi, productsApi } from '../services/api';
 
 const fallbackFeatured = [
   {
@@ -145,7 +145,7 @@ const spotlightFeatures = [
   },
 ];
 
-const couponDrops = [
+const fallbackCouponDrops = [
   {
     code: 'FREESHIP01',
     title: 'Free Delivery Coupon #1',
@@ -173,6 +173,7 @@ export default function HomePage() {
   const { user, coupons, addCoupon } = useAuth();
   const { showToast } = useToast();
   const [featured, setFeatured] = useState([]);
+  const [couponDrops, setCouponDrops] = useState(fallbackCouponDrops);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const canvasRef = useRef(null);
   const pageCanvasRef = useRef(null);
@@ -183,6 +184,16 @@ export default function HomePage() {
       .list({ page: 1, limit: 12 })
       .then((res) => setFeatured(res.data.data || []))
       .catch(() => setFeatured([]));
+  }, []);
+
+  useEffect(() => {
+    couponsApi
+      .list()
+      .then((res) => {
+        const rows = Array.isArray(res.data?.data) ? res.data.data : [];
+        setCouponDrops(rows.length ? rows : fallbackCouponDrops);
+      })
+      .catch(() => setCouponDrops(fallbackCouponDrops));
   }, []);
 
   useEffect(() => {
@@ -462,7 +473,7 @@ export default function HomePage() {
             <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Coupon drops</p>
             <h2 className="text-2xl font-bold">Collect discounts for checkout</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Collect two free delivery coupons and one 5% coupon. You can use one coupon per order.
+              Coupons are now managed by admins. Collect one and apply it at checkout.
             </p>
           </div>
           <Link to="/dashboard" className="text-sm text-blue-300 hover:text-blue-200">
@@ -477,6 +488,13 @@ export default function HomePage() {
                 <p className="text-xs uppercase tracking-[0.2em] text-blue-200/80">{coupon.code}</p>
                 <h3 className="mt-2 text-lg font-bold">{coupon.title}</h3>
                 <p className="mt-2 text-sm text-slate-300">{coupon.description}</p>
+                <p className="mt-2 text-xs text-blue-200/80">
+                  {coupon.type === 'percent'
+                    ? `${Number(coupon.value || 0)}% off`
+                    : coupon.type === 'free_delivery'
+                      ? 'Free delivery'
+                      : `LKR ${Number(coupon.value || 0).toFixed(2)} off`}
+                </p>
                 <button
                   type="button"
                   className="btn-primary mt-4 w-full"

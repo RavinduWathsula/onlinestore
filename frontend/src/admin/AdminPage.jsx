@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminApi, ordersApi, productsApi } from '../services/api';
+import { adminApi, couponsApi, ordersApi, productsApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -27,6 +27,15 @@ const initialEditForm = {
   category_id: '0',
 };
 
+const initialCouponForm = {
+  code: '',
+  title: '',
+  description: '',
+  type: 'percent',
+  value: '',
+  is_active: true,
+};
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -36,6 +45,8 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [couponForm, setCouponForm] = useState(initialCouponForm);
+  const [couponList, setCouponList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(initialForm);
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -47,12 +58,13 @@ export default function AdminPage() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [statsRes, usersRes, ordersRes, productsRes, categoryRes] = await Promise.all([
+      const [statsRes, usersRes, ordersRes, productsRes, categoryRes, couponRes] = await Promise.all([
         adminApi.stats(),
         adminApi.users(),
         ordersApi.list(),
         productsApi.list({ page: 1, limit: 100 }),
         productsApi.categories(),
+        couponsApi.list({ all: 1 }),
       ]);
 
       setStats(statsRes.data.data);
@@ -60,6 +72,7 @@ export default function AdminPage() {
       setOrders(ordersRes.data.data || []);
       setProducts(productsRes.data.data || []);
       setCategories(categoryRes.data.data || []);
+      setCouponList(couponRes.data.data || []);
     } catch {
       showToast('Failed to load admin data', 'error');
     } finally {
@@ -184,6 +197,49 @@ export default function AdminPage() {
     }
   };
 
+  const saveCoupon = async (e) => {
+    e.preventDefault();
+    const code = couponForm.code.trim().toUpperCase();
+    const title = couponForm.title.trim();
+    const value = Number(couponForm.value);
+
+    if (!/^[A-Z0-9_-]{3,40}$/.test(code)) {
+      showToast('Coupon code must be 3-40 chars (A-Z, 0-9, _ or -)', 'error');
+      return;
+    }
+
+    if (!title) {
+      showToast('Coupon title is required', 'error');
+      return;
+    }
+
+    if (!Number.isFinite(value) || value <= 0) {
+      showToast('Coupon value must be greater than 0', 'error');
+      return;
+    }
+
+    if (couponForm.type === 'percent' && value > 100) {
+      showToast('Percent coupon cannot exceed 100', 'error');
+      return;
+    }
+
+    try {
+      await couponsApi.create({
+        code,
+        title,
+        description: couponForm.description || '',
+        type: couponForm.type,
+        value,
+        is_active: couponForm.is_active,
+      });
+      showToast('Coupon saved');
+      setCouponForm(initialCouponForm);
+      loadAll();
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Could not save coupon', 'error');
+    }
+  };
+
   const filteredOrders = selectedDate
     ? orders.filter((order) => {
         const dateValue = order.created_at || order.createdAt || order.date;
@@ -262,6 +318,9 @@ export default function AdminPage() {
             </button>
             <button type="button" className={`admin-nav-btn ${activeSection === 'products' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('products')}>
               <span>Add product</span>
+            </button>
+            <button type="button" className={`admin-nav-btn ${activeSection === 'coupons' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('coupons')}>
+              <span>Coupons</span>
             </button>
           </nav>
 
@@ -515,6 +574,108 @@ export default function AdminPage() {
                               <button type="button" className="admin-action-btn admin-action-btn--edit" onClick={() => openEditProduct(product)}>Edit</button>
                               <button type="button" className="admin-action-btn admin-action-btn--delete" onClick={() => setDeleteTarget(product)}>Delete</button>
                             </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </>
+          ) : null}
+
+          {activeSection === 'coupons' ? (
+            <>
+              <section className="admin-panel admin-panel--products">
+                <div className="admin-panel__head">
+                  <h2 className="admin-panel__title">Create Coupon</h2>
+                  <p className="admin-panel__meta">Add coupon codes that will appear on the website</p>
+                </div>
+                <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={saveCoupon}>
+                  <input
+                    className="input-field"
+                    placeholder="Code (e.g. SAVE10)"
+                    value={couponForm.code}
+                    onChange={(e) => setCouponForm((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                    required
+                  />
+                  <input
+                    className="input-field"
+                    placeholder="Title"
+                    value={couponForm.title}
+                    onChange={(e) => setCouponForm((prev) => ({ ...prev, title: e.target.value }))}
+                    required
+                  />
+                  <select
+                    className="input-field"
+                    value={couponForm.type}
+                    onChange={(e) => setCouponForm((prev) => ({ ...prev, type: e.target.value }))}
+                  >
+                    <option value="percent">Percent discount</option>
+                    <option value="fixed">Fixed amount</option>
+                    <option value="free_delivery">Free delivery</option>
+                  </select>
+                  <input
+                    className="input-field"
+                    placeholder={couponForm.type === 'percent' ? 'Percent (e.g. 10)' : 'Amount (LKR)'}
+                    type="number"
+                    step="0.01"
+                    value={couponForm.value}
+                    onChange={(e) => setCouponForm((prev) => ({ ...prev, value: e.target.value }))}
+                    required
+                  />
+                  <textarea
+                    className="input-field md:col-span-2"
+                    rows="3"
+                    placeholder="Description"
+                    value={couponForm.description}
+                    onChange={(e) => setCouponForm((prev) => ({ ...prev, description: e.target.value }))}
+                  />
+                  <label className="flex items-center gap-2 text-sm text-slate-300 md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={couponForm.is_active}
+                      onChange={(e) => setCouponForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                    />
+                    Active coupon
+                  </label>
+                  <button className="btn-primary md:col-span-2" type="submit">Save coupon</button>
+                </form>
+              </section>
+
+              <section className="admin-panel admin-panel--products">
+                <div className="admin-panel__head">
+                  <h2 className="admin-panel__title">Coupon List</h2>
+                  <p className="admin-panel__meta">Visible and scheduled coupon codes</p>
+                </div>
+                <div className="mt-4 overflow-x-auto">
+                  <table className="admin-data-table">
+                    <thead>
+                      <tr>
+                        <th className="py-2">Code</th>
+                        <th className="py-2">Title</th>
+                        <th className="py-2">Type</th>
+                        <th className="py-2">Value</th>
+                        <th className="py-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {couponList.map((coupon) => (
+                        <tr key={coupon.code}>
+                          <td className="py-2 font-semibold">{coupon.code}</td>
+                          <td className="py-2">{coupon.title}</td>
+                          <td className="py-2 capitalize">{String(coupon.type || '').replace('_', ' ')}</td>
+                          <td className="py-2">
+                            {coupon.type === 'percent'
+                              ? `${Number(coupon.value || 0).toFixed(2)}%`
+                              : `LKR ${Number(coupon.value || 0).toFixed(2)}`}
+                          </td>
+                          <td className="py-2">
+                            {coupon.is_active ? (
+                              <span className="rounded-full border border-emerald-300/30 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-200">Active</span>
+                            ) : (
+                              <span className="rounded-full border border-slate-300/30 bg-slate-500/10 px-2 py-1 text-xs text-slate-300">Inactive</span>
+                            )}
                           </td>
                         </tr>
                       ))}

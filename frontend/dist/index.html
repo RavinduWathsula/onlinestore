@@ -7,8 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="./assets/index-B3GG-6ka.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-WRqci0NK.css">
   </head>
   <body class="text-white bg-slate-950">
     <div id="root">
@@ -20,20 +18,17 @@
             <li>Open terminal in frontend folder</li>
             <li>Run npm install</li>
             <li>Run npm run dev</li>
-            <li>Open http://localhost:5181</li>
+            <li>Open http://localhost/NovaStore/frontend/</li>
           </ol>
         </section>
       </main>
     </div>
     <script>
       (function () {
-        if (location.hash || location.pathname === '/' || location.pathname.endsWith('.html')) {
-          return;
-        }
-
-        var nextUrl = '/#' + location.pathname.replace(/\/$/, '') + location.search + location.hash;
-        location.replace(nextUrl);
+        // Open the production build automatically when this file is served by Apache.
+        var target = './dist/index.html' + location.search + location.hash;
+        location.replace(target);
       })();
-    </script>
+    </script>
   </body>
 </html>

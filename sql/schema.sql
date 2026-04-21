@@ -122,6 +122,25 @@ CREATE TABLE IF NOT EXISTS product_options (
     UNIQUE KEY uq_product_option (product_id, option_type, option_value)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS coupons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(40) NOT NULL UNIQUE,
+    title VARCHAR(120) NOT NULL,
+    description VARCHAR(255) DEFAULT '',
+    discount_type ENUM('percent','fixed','free_delivery') NOT NULL DEFAULT 'percent',
+    discount_value DECIMAL(10,2) NOT NULL DEFAULT 0,
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    starts_at DATETIME NULL,
+    expires_at DATETIME NULL,
+    created_by INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_coupons_created_by
+        FOREIGN KEY (created_by) REFERENCES users(id)
+        ON DELETE SET NULL,
+    KEY idx_coupons_active_time (is_active, starts_at, expires_at)
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS payment_otps (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -274,4 +293,17 @@ WHERE NOT EXISTS (
     WHERE po.product_id = p.id
       AND po.option_type = seeded.option_type
       AND po.option_value = seeded.option_value
+);
+
+INSERT INTO coupons (code, title, description, discount_type, discount_value, is_active)
+SELECT seeded.code, seeded.title, seeded.description, seeded.discount_type, seeded.discount_value, 1
+FROM (
+    SELECT 'FREESHIP01' AS code, 'Free Delivery Coupon #1' AS title, 'Removes LKR 450 delivery fee at checkout for all products.' AS description, 'free_delivery' AS discount_type, 450.00 AS discount_value UNION ALL
+    SELECT 'FREESHIP02', 'Free Delivery Coupon #2', 'Second free-delivery coupon valid for any checkout.', 'free_delivery', 450.00 UNION ALL
+    SELECT 'SAVE5ALL', '5% Off Coupon', 'Get 5% discount on product subtotal for all products.', 'percent', 5.00
+) AS seeded
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM coupons c
+    WHERE c.code = seeded.code
 );

@@ -233,20 +233,63 @@ function resolve_coupon_discount(string $couponCode, float $subtotal): array
 {
     $normalized = strtoupper(trim($couponCode));
     if ($normalized === '' || $subtotal <= 0) {
-        return ['code' => null, 'discount' => 0.0, 'percent' => 0.0];
+        return ['code' => null, 'discount' => 0.0, 'percent' => 0.0, 'type' => null];
+    }
+
+    try {
+        $stmt = db()->prepare('SELECT code, discount_type, discount_value
+                               FROM coupons
+                               WHERE code = ?
+                                 AND is_active = 1
+                                 AND (starts_at IS NULL OR starts_at <= NOW())
+                                 AND (expires_at IS NULL OR expires_at >= NOW())
+                               LIMIT 1');
+        $stmt->bind_param('s', $normalized);
+        $stmt->execute();
+        $coupon = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+
+        if ($coupon) {
+            $type = (string) ($coupon['discount_type'] ?? 'percent');
+            $value = (float) ($coupon['discount_value'] ?? 0);
+
+            if ($type === 'free_delivery') {
+                return ['code' => $normalized, 'discount' => 0.0, 'percent' => 0.0, 'type' => 'free_delivery'];
+            }
+
+            if ($type === 'fixed') {
+                return [
+                    'code' => $normalized,
+                    'discount' => min(max($value, 0.0), $subtotal),
+                    'percent' => 0.0,
+                    'type' => 'fixed',
+                ];
+            }
+
+            $percent = min(max($value, 0.0), 100.0);
+            $discount = round($subtotal * ($percent / 100), 2);
+            return [
+                'code' => $normalized,
+                'discount' => min($discount, $subtotal),
+                'percent' => $percent,
+                'type' => 'percent',
+            ];
+        }
+    } catch (Throwable $e) {
+        // Graceful fallback for environments without coupons table migration.
     }
 
     if (in_array($normalized, ['FREESHIP01', 'FREESHIP02'], true)) {
         $discount = min(450.0, $subtotal);
-        return ['code' => $normalized, 'discount' => $discount, 'percent' => 0.0];
+        return ['code' => $normalized, 'discount' => $discount, 'percent' => 0.0, 'type' => 'free_delivery'];
     }
 
     if ($normalized === 'SAVE5ALL') {
         $discount = round($subtotal * 0.05, 2);
-        return ['code' => $normalized, 'discount' => min($discount, $subtotal), 'percent' => 5.0];
+        return ['code' => $normalized, 'discount' => min($discount, $subtotal), 'percent' => 5.0, 'type' => 'percent'];
     }
 
-    return ['code' => null, 'discount' => 0.0, 'percent' => 0.0];
+    return ['code' => null, 'discount' => 0.0, 'percent' => 0.0, 'type' => null];
 }
 
 function create_order_from_cart(int $userId, array $payment = []): ?int
@@ -270,7 +313,7 @@ function create_order_from_cart(int $userId, array $payment = []): ?int
     $coupon = resolve_coupon_discount($couponCode, $subtotal);
     $discountAmount = (float) $coupon['discount'];
 
-    if (in_array((string) $coupon['code'], ['FREESHIP01', 'FREESHIP02'], true)) {
+    if ((string) ($coupon['type'] ?? '') === 'free_delivery') {
         $discountAmount = min($deliveryFee, $subtotal + $deliveryFee);
     }
 

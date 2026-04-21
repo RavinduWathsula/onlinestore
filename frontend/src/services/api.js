@@ -27,6 +27,11 @@ export const productsApi = {
   categories: () => api.get('/categories.php'),
 };
 
+export const couponsApi = {
+  list: (params) => api.get('/coupons.php', { params }),
+  create: (payload) => api.post('/coupons.php', payload),
+};
+
 export const reviewsApi = {
   list: (productId) => api.get('/reviews.php', { params: { product_id: productId } }),
 };
