@@ -50,8 +50,8 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6">
       <section className="glass p-6">
-        <h1 className="text-3xl font-bold">All products</h1>
-        <p className="mt-2 text-slate-300">Browse products with search, filters and sorting.</p>
+        <h1 className="text-3xl font-bold text-[var(--text-primary)]">All products</h1>
+        <p className="mt-2 text-[var(--text-secondary)]">Browse products with search, filters and sorting.</p>
         <div className="mt-5 grid gap-3 md:grid-cols-4">
           <input className="input-field" placeholder="Search products" value={search} onChange={(e) => setSearch(e.target.value)} />
           <select className="input-field" value={category} onChange={(e) => setCategory(e.target.value)}>
@@ -87,7 +87,7 @@ export default function ProductsPage() {
             <button className="btn-secondary" type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
               Prev
             </button>
-            <span className="text-sm text-slate-300">
+            <span className="text-sm text-[var(--text-secondary)]">
               Page {page} / {meta.pages || 1}
             </span>
             <button className="btn-secondary" type="button" disabled={page >= (meta.pages || 1)} onClick={() => setPage((p) => p + 1)}>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import SupportAgentWidget from '../components/SupportAgentWidget';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import { couponsApi, productsApi } from '../services/api';
 
@@ -171,6 +172,7 @@ const fallbackCouponDrops = [
 
 export default function HomePage() {
   const { user, coupons, addCoupon } = useAuth();
+  const { theme } = useTheme();
   const { showToast } = useToast();
   const [featured, setFeatured] = useState([]);
   const [couponDrops, setCouponDrops] = useState(fallbackCouponDrops);
@@ -228,8 +230,8 @@ export default function HomePage() {
       tick += 0.005;
       context.clearRect(0, 0, width, height);
 
-      // Pure black background
-      context.fillStyle = '#000000';
+      // Theme-aware background
+      context.fillStyle = theme === 'dark' ? '#000000' : '#f0f2f5';
       context.fillRect(0, 0, width, height);
 
       for (let i = 0; i < nodes.length; i += 1) {
@@ -255,8 +257,8 @@ export default function HomePage() {
           const oy = other.y * height;
           const dist = Math.hypot(ox - x, oy - y);
           if (dist < 170) {
-            const opacity = (1 - dist / 170) * 0.15;
-            context.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+            const opacity = (1 - dist / 170) * (theme === 'dark' ? 0.15 : 0.08);
+            context.strokeStyle = theme === 'dark' ? `rgba(255, 255, 255, ${opacity})` : `rgba(15, 23, 42, ${opacity})`;
             context.lineWidth = 0.5;
             context.beginPath();
             context.moveTo(x, y);
@@ -375,10 +377,10 @@ export default function HomePage() {
   return (
     <div className="home-shell relative space-y-14">
       <canvas ref={pageCanvasRef} className="page-canvas-3d" aria-hidden="true" />
-      <section className="home-hero home-section relative overflow-hidden rounded-3xl border border-white/10 p-8 md:p-12">
+      <section className="home-hero home-section relative overflow-hidden rounded-3xl border border-[var(--border-color)] p-8 md:p-12">
         <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
-        <div className="pointer-events-none absolute -left-16 top-12 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -right-16 bottom-10 h-48 w-48 rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -left-16 top-12 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-16 bottom-10 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl" />
         <div className="relative z-10 grid gap-8 md:grid-cols-2 md:items-center">
           <div>
             <p className="hero-eyebrow mb-3 inline-flex rounded-full border border-blue-300/40 bg-blue-400/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-blue-200">
@@ -387,7 +389,7 @@ export default function HomePage() {
             <h1 className="hero-title hero-title--glow text-4xl font-extrabold leading-tight md:text-6xl">
               Experience shopping in a more immersive way.
             </h1>
-            <p className="mt-4 max-w-xl text-slate-300 md:text-lg">
+            <p className="mt-4 max-w-xl text-[var(--text-secondary)] md:text-lg">
               NeoCart blends curated products, smart discovery, and secure checkout in one futuristic storefront.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -402,35 +404,35 @@ export default function HomePage() {
             </div>
             <div className="mt-8 grid max-w-xl grid-cols-3 gap-3 text-center">
               <div className="stat-chip stat-chip--animated">
-                <p className="text-xl font-bold">12K+</p>
-                <p className="text-xs text-slate-400">Products</p>
+                <p className="text-xl font-bold text-[var(--text-primary)]">12K+</p>
+                <p className="text-xs text-[var(--text-muted)]">Products</p>
               </div>
               <div className="stat-chip stat-chip--animated stat-chip--delay-1">
-                <p className="text-xl font-bold">850+</p>
-                <p className="text-xs text-slate-400">Vendors</p>
+                <p className="text-xl font-bold text-[var(--text-primary)]">850+</p>
+                <p className="text-xs text-[var(--text-muted)]">Vendors</p>
               </div>
               <div className="stat-chip stat-chip--animated stat-chip--delay-2">
-                <p className="text-xl font-bold">4.9</p>
-                <p className="text-xs text-slate-400">User rating</p>
+                <p className="text-xl font-bold text-[var(--text-primary)]">4.9</p>
+                <p className="text-xs text-[var(--text-muted)]">User rating</p>
               </div>
             </div>
           </div>
           <div className="feature-panel">
-            <p className="inline-flex items-center gap-2 text-sm text-slate-300">
-              <Rocket size={14} className="text-blue-300" /> Weekly launch deals
+            <p className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+              <Rocket size={14} className="text-blue-500" /> Weekly launch deals
             </p>
-            <h3 className="mt-3 text-2xl font-bold">Curated drops from fast-growing brands</h3>
-            <p className="mt-3 text-sm text-slate-300">
+            <h3 className="mt-3 text-2xl font-bold text-[var(--text-primary)]">Curated drops from fast-growing brands</h3>
+            <p className="mt-3 text-sm text-[var(--text-secondary)]">
               Grab limited picks from tech, fashion, and smart home categories with secured fast delivery.
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs text-slate-400">Next-day shipping</p>
-                <p className="text-lg font-semibold text-emerald-300">Available</p>
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-4">
+                <p className="text-xs text-[var(--text-muted)]">Next-day shipping</p>
+                <p className="text-lg font-semibold text-emerald-500">Available</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-xs text-slate-400">Secure payments</p>
-                <p className="text-lg font-semibold text-blue-300">PCI-ready</p>
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-4">
+                <p className="text-xs text-[var(--text-muted)]">Secure payments</p>
+                <p className="text-lg font-semibold text-blue-500">PCI-ready</p>
               </div>
             </div>
           </div>
@@ -440,13 +442,13 @@ export default function HomePage() {
       <section className="home-section home-section--featured space-y-5">
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Highlighted now</p>
-            <h2 className="text-2xl font-bold">Featured products</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-500/70">Highlighted now</p>
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Featured products</h2>
             {!featured.length ? (
-              <p className="mt-2 text-sm text-slate-400">Live products are loading. Showing curated picks now.</p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">Live products are loading. Showing curated picks now.</p>
             ) : null}
           </div>
-          <Link to="/products" className="text-sm text-blue-300 hover:text-blue-200">
+          <Link to="/products" className="text-sm text-blue-500 hover:text-blue-400">
             View all
           </Link>
         </div>
@@ -460,9 +462,9 @@ export default function HomePage() {
       <section className="home-section grid gap-4 md:grid-cols-3">
         {spotlightFeatures.map((feature) => (
           <article key={feature.title} className={`deal-card ${feature.tone}`}>
-            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">{feature.title}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-500/70">{feature.title}</p>
             <p className="mt-2 text-3xl font-black text-white">{feature.value}</p>
-            <p className="mt-2 text-sm text-slate-300">{feature.subtitle}</p>
+            <p className="mt-2 text-sm text-slate-100">{feature.subtitle}</p>
           </article>
         ))}
       </section>
@@ -470,13 +472,13 @@ export default function HomePage() {
       <section className="home-section home-section--featured space-y-5">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Coupon drops</p>
-            <h2 className="text-2xl font-bold">Collect discounts for checkout</h2>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-500/70">Coupon drops</p>
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Collect discounts for checkout</h2>
+            <p className="mt-2 text-sm text-[var(--text-muted)]">
               Coupons are now managed by admins. Collect one and apply it at checkout.
             </p>
           </div>
-          <Link to="/dashboard" className="text-sm text-blue-300 hover:text-blue-200">
+          <Link to="/dashboard" className="text-sm text-blue-500 hover:text-blue-400">
             View in dashboard
           </Link>
         </div>
@@ -485,10 +487,10 @@ export default function HomePage() {
             const collected = coupons.some((item) => item.code === coupon.code);
             return (
               <article key={coupon.code} className="deal-card deal-card--blue">
-                <p className="text-xs uppercase tracking-[0.2em] text-blue-200/80">{coupon.code}</p>
-                <h3 className="mt-2 text-lg font-bold">{coupon.title}</h3>
-                <p className="mt-2 text-sm text-slate-300">{coupon.description}</p>
-                <p className="mt-2 text-xs text-blue-200/80">
+                <p className="text-xs uppercase tracking-[0.2em] text-blue-100/90">{coupon.code}</p>
+                <h3 className="mt-2 text-lg font-bold text-white">{coupon.title}</h3>
+                <p className="mt-2 text-sm text-slate-100">{coupon.description}</p>
+                <p className="mt-2 text-xs text-blue-100/80">
                   {coupon.type === 'percent'
                     ? `${Number(coupon.value || 0)}% off`
                     : coupon.type === 'free_delivery'
@@ -518,8 +520,8 @@ export default function HomePage() {
 
       <section className="home-section space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Discover more</p>
-          <h2 className="text-2xl font-bold">Featured categories</h2>
+          <p className="text-xs uppercase tracking-[0.2em] text-blue-500/70">Discover more</p>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">Featured categories</h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {categories.map((category) => (
@@ -528,9 +530,9 @@ export default function HomePage() {
               to={`/products?category=${category.name}`} 
               className={`category-card ${category.tone} block transition-transform hover:scale-[1.02]`}
             >
-              <category.icon className="mb-3 text-blue-300" size={22} />
-              <h3 className="text-lg font-semibold">{category.name}</h3>
-              <p className="mt-2 text-sm text-slate-400">{category.blurb}</p>
+              <category.icon className="mb-3 text-blue-500" size={22} />
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">{category.name}</h3>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">{category.blurb}</p>
             </Link>
           ))}
         </div>
@@ -538,8 +540,8 @@ export default function HomePage() {
 
       <section className="home-section grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="glass home-subpanel p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Why NeoCart</p>
-          <h2 className="mt-2 text-2xl font-bold">Built for speed, trust, and better buying.</h2>
+          <p className="text-xs uppercase tracking-[0.2em] text-blue-500/70">Why NeoCart</p>
+          <h2 className="mt-2 text-2xl font-bold text-[var(--text-primary)]">Built for speed, trust, and better buying.</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <ShieldCheck className="mb-2 text-emerald-300" size={18} />
@@ -557,11 +559,11 @@ export default function HomePage() {
         </div>
 
         <div className="glass home-subpanel p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Customer voices</p>
-          <blockquote className="mt-3 min-h-[120px] text-lg text-slate-100 transition-all duration-500">
+          <p className="text-xs uppercase tracking-[0.2em] text-blue-500/70">Customer voices</p>
+          <blockquote className="mt-3 min-h-[120px] text-lg text-[var(--text-primary)] transition-all duration-500">
             "{testimonials[activeTestimonial].text}"
           </blockquote>
-          <p className="mt-3 text-sm text-blue-300">{testimonials[activeTestimonial].name}</p>
+          <p className="mt-3 text-sm text-blue-500">{testimonials[activeTestimonial].name}</p>
           <div className="mt-5 flex gap-2">
             {testimonials.map((item, index) => (
               <button
@@ -581,11 +583,11 @@ export default function HomePage() {
       <section className="glass home-section overflow-hidden p-6 md:p-8">
         <div className="review-head">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-blue-300/70">Trusted by shoppers</p>
-            <h2 className="text-2xl font-bold">Customer reviews and ratings</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-blue-500/70">Trusted by shoppers</p>
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Customer reviews and ratings</h2>
           </div>
           <div className="review-score">
-            <p className="text-3xl font-black text-white">4.9/5</p>
+            <p className="text-3xl font-black text-[var(--text-primary)]">4.9/5</p>
             <div className="review-stars" aria-label="Average rating 4.9 out of 5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star key={`avg-star-${star}`} size={16} className="fill-amber-300 text-amber-300" />
@@ -607,9 +609,9 @@ export default function HomePage() {
                   />
                 ))}
               </div>
-              <h3 className="mt-3 text-lg font-semibold">{review.title}</h3>
-              <p className="mt-2 text-sm text-slate-300">{review.text}</p>
-              <p className="mt-4 text-xs uppercase tracking-[0.14em] text-blue-200/90">
+              <h3 className="mt-3 text-lg font-semibold text-white">{review.title}</h3>
+              <p className="mt-2 text-sm text-slate-100">{review.text}</p>
+              <p className="mt-4 text-xs uppercase tracking-[0.14em] text-blue-100/90">
                 {review.name} • {review.location}
               </p>
             </article>

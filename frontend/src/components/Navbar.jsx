@@ -2,10 +2,13 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useTheme } from '../context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 import logoMark from '../assets/neocart-logo.svg';
 
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -28,7 +31,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 px-3 pt-3">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-[98%]">
         <div className="nav-shell">
           <Link to="/" className="nav-brand">
             <img src={logoMark} alt="NeoCart logo" className="nav-brand__logo" />
@@ -60,6 +63,18 @@ export default function Navbar() {
           )}
           </nav>
           <div className="nav-actions">
+            <button
+              onClick={toggleTheme}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-200 transition-all hover:bg-white/10 hover:text-white dark:border-white/10 dark:bg-white/5 dark:text-slate-200 light:border-slate-200 light:bg-slate-100 light:text-slate-600"
+              style={{
+                borderColor: 'var(--border-color)',
+                backgroundColor: 'var(--glass-bg)',
+                color: 'var(--text-secondary)'
+              }}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             {!user ? (
               <>
                 <Link className="btn-secondary text-sm" to="/login">

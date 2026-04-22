@@ -266,7 +266,7 @@ export default function CheckoutPage() {
   if (loadingCart) {
     return (
       <div className="mx-auto max-w-5xl glass p-6">
-        <p className="text-slate-300">Loading checkout...</p>
+        <p className="text-[var(--text-secondary)]">Loading checkout...</p>
       </div>
     );
   }
@@ -275,15 +275,15 @@ export default function CheckoutPage() {
     <div className="checkout-shell mx-auto max-w-6xl space-y-6">
       <section className="checkout-hero glass p-6">
         <span className="checkout-hero__badge">NEOCART CHECKOUT</span>
-        <h1 className="checkout-hero__title text-3xl font-bold">Secure Checkout Experience</h1>
-        <p className="mt-2 text-slate-300">Choose your payment style, apply collected coupons, and finish your order with a premium billing flow.</p>
+        <h1 className="checkout-hero__title text-3xl font-bold text-[var(--text-primary)]">Secure Checkout Experience</h1>
+        <p className="mt-2 text-[var(--text-secondary)]">Choose your payment style, apply collected coupons, and finish your order with a premium billing flow.</p>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="checkout-card glass p-6">
-          <h2 className="text-xl font-semibold">Order Summary</h2>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">Order Summary</h2>
           {cartItems.length === 0 ? (
-            <div className="checkout-empty mt-4 p-5 text-sm text-slate-300">
+            <div className="checkout-empty mt-4 p-5 text-sm text-[var(--text-secondary)]">
               <div className="checkout-empty__orb" aria-hidden="true" />
               <p className="checkout-empty__eyebrow">ORDER SUMMARY</p>
               <h3 className="checkout-empty__title">No items in your cart</h3>
@@ -293,46 +293,46 @@ export default function CheckoutPage() {
           ) : (
             <div className="mt-4 space-y-3">
               {cartItems.map((item) => (
-                <div key={item.id} className="checkout-item-card flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div key={item.id} className="checkout-item-card flex items-center gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-3">
                   <img
                     src={item.image || 'https://images.unsplash.com/photo-1511385348-a52b4a160dc2?auto=format&fit=crop&w=200&q=80'}
                     alt={item.name}
                     className="h-14 w-14 rounded-lg object-cover"
                   />
                   <div className="flex-1">
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-xs text-slate-400">Qty {item.quantity} x {formatMoney(item.price)}</p>
+                    <p className="font-semibold text-[var(--text-primary)]">{item.name}</p>
+                    <p className="text-xs text-[var(--text-muted)]">Qty {item.quantity} x {formatMoney(item.price)}</p>
                   </div>
-                  <p className="font-semibold text-blue-300">{formatMoney(Number(item.quantity) * Number(item.price))}</p>
+                  <p className="font-semibold text-blue-500">{formatMoney(Number(item.quantity) * Number(item.price))}</p>
                 </div>
               ))}
             </div>
           )}
 
-          <div className="checkout-totals mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between text-sm text-slate-300">
+          <div className="checkout-totals mt-5 rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-4">
+            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
               <span>Items</span>
               <span>{summary.count}</span>
             </div>
-            <div className="mt-2 flex items-center justify-between text-sm text-slate-300">
+            <div className="mt-2 flex items-center justify-between text-sm text-[var(--text-secondary)]">
               <span>Delivery</span>
               <span>{formatMoney(DELIVERY_FEE)}</span>
             </div>
-            <div className="mt-2 flex items-center justify-between text-sm text-emerald-300">
+            <div className="mt-2 flex items-center justify-between text-sm text-emerald-500">
               <span>Coupon discount</span>
               <span>- {formatMoney(couponDiscount)}</span>
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3 text-lg font-bold">
-              <span>Total</span>
-              <span className="text-blue-300">{formatMoney(totalPayable)}</span>
+            <div className="mt-3 flex items-center justify-between border-t border-[var(--border-color)] pt-3 text-lg font-bold">
+              <span className="text-[var(--text-primary)]">Total</span>
+              <span className="text-blue-500">{formatMoney(totalPayable)}</span>
             </div>
           </div>
         </div>
 
         <div className="checkout-card checkout-payment glass p-6">
-          <h2 className="text-xl font-semibold">Payment</h2>
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">Payment</h2>
           <div className="mt-4">
-            <label className="mb-2 block text-sm text-slate-300">Choose coupon (optional)</label>
+            <label className="mb-2 block text-sm text-[var(--text-secondary)]">Choose coupon (optional)</label>
             <select
               className="input-field"
               value={selectedCoupon}
@@ -346,16 +346,16 @@ export default function CheckoutPage() {
               ))}
             </select>
             {!coupons.length ? (
-              <p className="mt-2 text-xs text-slate-400">Collect coupons from the Home page first.</p>
+              <p className="mt-2 text-xs text-[var(--text-muted)]">Collect coupons from the Home page first.</p>
             ) : null}
           </div>
 
           <div className="mt-4 space-y-3">
-            <label className="checkout-pay-option flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
+            <label className="checkout-pay-option flex cursor-pointer items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-3 text-[var(--text-primary)]">
               <span>Cash on Delivery</span>
               <input type="radio" name="payment" checked={paymentMethod === 'cash_on_delivery'} onChange={() => setPaymentMethod('cash_on_delivery')} />
             </label>
-            <label className="checkout-pay-option flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
+            <label className="checkout-pay-option flex cursor-pointer items-center justify-between rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-3 text-[var(--text-primary)]">
               <span>Card Payment (Sri Lanka)</span>
               <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
             </label>
@@ -401,7 +401,7 @@ export default function CheckoutPage() {
                 inputMode="tel"
                 onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
               />
-              <p className="text-xs text-slate-400">Card must be exactly 16 digits in 4-4-4-4 format.</p>
+              <p className="text-xs text-[var(--text-muted)]">Card must be exactly 16 digits in 4-4-4-4 format.</p>
             </div>
           )}
 
@@ -422,22 +422,22 @@ export default function CheckoutPage() {
         <section className="checkout-card glass p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h3 className="text-2xl font-bold">Payment Bill</h3>
-              <p className="text-sm text-slate-300">Order #{invoice.orderId} • {invoice.paymentMethodLabel}</p>
+              <h3 className="text-2xl font-bold text-[var(--text-primary)]">Payment Bill</h3>
+              <p className="text-sm text-[var(--text-secondary)]">Order #{invoice.orderId} • {invoice.paymentMethodLabel}</p>
             </div>
             <button type="button" className="btn-primary" onClick={downloadBill}>
               Download Bill
             </button>
           </div>
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mt-4 rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-4">
             {invoice.couponCode ? (
-              <p className="mb-2 text-sm text-emerald-300">Coupon used: {invoice.couponCode}</p>
+              <p className="mb-2 text-sm text-emerald-500">Coupon used: {invoice.couponCode}</p>
             ) : null}
-            <div className="flex items-center justify-between text-sm text-slate-300">
+            <div className="flex items-center justify-between text-sm text-[var(--text-secondary)]">
               <span>Total Paid</span>
-              <span className="text-xl font-bold text-blue-300">{formatMoney(invoice.total)}</span>
+              <span className="text-xl font-bold text-blue-500">{formatMoney(invoice.total)}</span>
             </div>
-            <p className="mt-2 text-xs text-slate-400">Payment successful. You can download and keep this bill for records.</p>
+            <p className="mt-2 text-xs text-[var(--text-muted)]">Payment successful. You can download and keep this bill for records.</p>
             <div className="mt-4">
               <Link to="/dashboard" className="btn-secondary inline-flex">
                 Go to Dashboard

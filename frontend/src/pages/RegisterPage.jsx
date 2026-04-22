@@ -38,11 +38,11 @@ export default function RegisterPage() {
       <div className="auth-grid auth-grid--single">
         <div className="auth-form-panel auth-form-panel--register">
           <p className="auth-eyebrow">Start Shopping</p>
-          <h2 className="text-3xl font-bold">Register</h2>
-          <p className="mt-2 text-slate-300">Create your account to start shopping.</p>
+          <h2 className="text-3xl font-bold text-[var(--text-primary)]">Register</h2>
+          <p className="mt-2 text-[var(--text-secondary)]">Create your account to start shopping.</p>
           <form className="mt-6 space-y-4" onSubmit={onSubmit} autoComplete="off">
             <div>
-              <label className="mb-1 block text-sm text-slate-300">Full name</label>
+              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Full name</label>
               <input
                 className="input-field"
                 type="text"
@@ -54,7 +54,7 @@ export default function RegisterPage() {
               {errors.name && <p className="mt-1 text-sm text-red-300">{errors.name}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm text-slate-300">Email</label>
+              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Email</label>
               <input
                 className="input-field"
                 type="email"
@@ -66,7 +66,7 @@ export default function RegisterPage() {
               {errors.email && <p className="mt-1 text-sm text-red-300">{errors.email}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm text-slate-300">Password</label>
+              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Password</label>
               <input
                 className="input-field"
                 type="password"
@@ -95,7 +95,7 @@ export default function RegisterPage() {
               <span>Products tailored to your interests.</span>
             </div>
           </div>
-          <p className="mt-5 text-sm text-slate-300">
+          <p className="mt-5 text-sm text-[var(--text-secondary)]">
             Already registered?{' '}
             <Link to="/login" className="text-blue-300 hover:text-blue-200">
               Login

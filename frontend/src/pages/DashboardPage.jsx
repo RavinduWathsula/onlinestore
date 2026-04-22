@@ -7,13 +7,13 @@ import { useToast } from '../context/ToastContext';
 
 function statusClass(status) {
   const map = {
-    delivered: 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30',
-    shipped: 'bg-sky-500/15 text-sky-300 border-sky-400/30',
-    processing: 'bg-amber-500/15 text-amber-300 border-amber-400/30',
-    pending: 'bg-slate-500/15 text-slate-300 border-slate-400/30',
-    cancelled: 'bg-rose-500/15 text-rose-300 border-rose-400/30',
+    delivered: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-400/30',
+    shipped: 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-400/30',
+    processing: 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-400/30',
+    pending: 'bg-slate-500/15 text-slate-600 dark:text-slate-300 border-slate-400/30',
+    cancelled: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-400/30',
   };
-  return map[String(status || '').toLowerCase()] || 'bg-indigo-500/15 text-indigo-300 border-indigo-400/30';
+  return map[String(status || '').toLowerCase()] || 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border-indigo-400/30';
 }
 
 function formatMoney(amount) {
@@ -195,14 +195,14 @@ export default function DashboardPage() {
       <section className="glass p-6 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200/70">Account Overview</p>
-            <h1 className="mt-2 text-3xl font-bold md:text-4xl bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">Welcome, {user?.name}</h1>
-            <p className="mt-2 text-slate-300">Track your purchases, order status, and account activity in one place.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500/70">Account Overview</p>
+            <h1 className="mt-2 text-3xl font-bold md:text-4xl bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">Welcome, {user?.name}</h1>
+            <p className="mt-2 text-[var(--text-secondary)]">Track your purchases, order status, and account activity in one place.</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right">
-            <p className="text-xs text-slate-400">Member email</p>
-            <p className="font-semibold">{user?.email}</p>
-            <p className="mt-1 text-xs capitalize text-slate-400">Role: {user?.role}</p>
+          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] px-4 py-3 text-right">
+            <p className="text-xs text-[var(--text-muted)]">Member email</p>
+            <p className="font-semibold text-[var(--text-primary)]">{user?.email}</p>
+            <p className="mt-1 text-xs capitalize text-[var(--text-muted)]">Role: {user?.role}</p>
             <button
               type="button"
               className="btn-secondary mt-3 px-3 py-2 text-xs hover:border-cyan-400/60 hover:from-cyan-500/30 hover:to-blue-500/30"
@@ -214,30 +214,30 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="dashboard-stat-card">
-            <p className="text-xs text-slate-400">Total Orders</p>
-            <p className="mt-2 text-2xl font-bold">{totalOrders}</p>
+          <article className="dashboard-stat-card bg-[var(--glass-bg)] border-[var(--border-color)]">
+            <p className="text-xs text-[var(--text-muted)]">Total Orders</p>
+            <p className="mt-2 text-2xl font-bold text-[var(--text-primary)]">{totalOrders}</p>
           </article>
-          <article className="dashboard-stat-card">
-            <p className="text-xs text-slate-400">Total Spent</p>
-            <p className="mt-2 text-2xl font-bold text-blue-300">{formatMoney(totalSpent)}</p>
+          <article className="dashboard-stat-card bg-[var(--glass-bg)] border-[var(--border-color)]">
+            <p className="text-xs text-[var(--text-muted)]">Total Spent</p>
+            <p className="mt-2 text-2xl font-bold text-blue-500">{formatMoney(totalSpent)}</p>
           </article>
-          <article className="dashboard-stat-card">
-            <p className="text-xs text-slate-400">Completed Orders</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-300">{completedOrders}</p>
+          <article className="dashboard-stat-card bg-[var(--glass-bg)] border-[var(--border-color)]">
+            <p className="text-xs text-[var(--text-muted)]">Completed Orders</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-500">{completedOrders}</p>
           </article>
-          <article className="dashboard-stat-card">
-            <p className="text-xs text-slate-400">In Progress</p>
-            <p className="mt-2 text-2xl font-bold text-amber-300">{processingOrders}</p>
+          <article className="dashboard-stat-card bg-[var(--glass-bg)] border-[var(--border-color)]">
+            <p className="text-xs text-[var(--text-muted)]">In Progress</p>
+            <p className="mt-2 text-2xl font-bold text-amber-500">{processingOrders}</p>
           </article>
         </div>
 
         {showProfileEditor ? (
-          <form className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4" onSubmit={submitProfile}>
-            <h2 className="text-lg font-semibold">Profile Settings</h2>
-            <p className="mt-1 text-sm text-slate-400">Update your customer profile. Email is fixed and cannot be changed.</p>
+          <form className="mt-6 rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-4" onSubmit={submitProfile}>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Profile Settings</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Update your customer profile. Email is fixed and cannot be changed.</p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <label className="text-sm text-slate-300">
+              <label className="text-sm text-[var(--text-secondary)]">
                 Name
                 <input
                   className="input-field mt-1"
@@ -245,11 +245,11 @@ export default function DashboardPage() {
                   onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))}
                 />
               </label>
-              <label className="text-sm text-slate-300">
+              <label className="text-sm text-[var(--text-secondary)]">
                 Email (read only)
                 <input className="input-field mt-1 opacity-70" value={user?.email || ''} readOnly />
               </label>
-              <label className="text-sm text-slate-300">
+              <label className="text-sm text-[var(--text-secondary)]">
                 Phone
                 <input
                   className="input-field mt-1"
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                   onChange={(e) => setProfileForm((prev) => ({ ...prev, phone: e.target.value }))}
                 />
               </label>
-              <label className="text-sm text-slate-300 md:col-span-2">
+              <label className="text-sm text-[var(--text-secondary)] md:col-span-2">
                 Address
                 <textarea
                   className="input-field mt-1 min-h-[88px]"
@@ -287,8 +287,8 @@ export default function DashboardPage() {
       <section className="glass p-6 md:p-8">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold md:text-2xl">Recent Orders</h2>
-            <p className="mt-1 text-sm text-slate-400">Latest purchases and delivery progress.</p>
+            <h2 className="text-xl font-bold md:text-2xl text-[var(--text-primary)]">Recent Orders</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Latest purchases and delivery progress.</p>
           </div>
           <button type="button" className="btn-secondary" onClick={() => setShowCoupons((value) => !value)}>
             {showCoupons ? 'Hide coupons' : 'Coupons'}
@@ -297,9 +297,9 @@ export default function DashboardPage() {
 
         {showCoupons ? (
           <div className="mt-4 rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 p-4">
-            <h3 className="text-lg font-semibold">Collected coupons</h3>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">Collected coupons</h3>
             {coupons.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-400">No coupons collected yet. Go to Home and collect coupons.</p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">No coupons collected yet. Go to Home and collect coupons.</p>
             ) : (
               <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {coupons.map((coupon) => (
@@ -318,15 +318,15 @@ export default function DashboardPage() {
             <LoadingSpinner label="Loading orders" />
           </div>
         ) : orders.length === 0 ? (
-          <div className="mt-5 rounded-2xl border border-dashed border-white/20 bg-white/5 p-6 text-center">
-            <p className="text-slate-300">No orders yet.</p>
-            <p className="mt-1 text-sm text-slate-400">Place your first order to start tracking it here.</p>
+          <div className="mt-5 rounded-2xl border border-dashed border-[var(--border-color)] bg-[var(--glass-bg)] p-6 text-center">
+            <p className="text-[var(--text-secondary)]">No orders yet.</p>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Place your first order to start tracking it here.</p>
           </div>
         ) : (
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/10 text-slate-400">
+                <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)]">
                   <th className="py-3 pr-4">Order ID</th>
                   <th className="py-3 pr-4">Amount</th>
                   <th className="py-3 pr-4">Status</th>
@@ -337,16 +337,16 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {orders.map((order) => (
-                  <tr key={order.id} className="border-b border-white/5 text-slate-200">
-                    <td className="py-3 pr-4 font-medium">#{order.id}</td>
-                    <td className="py-3 pr-4 font-semibold text-blue-300">{formatMoney(order.total_amount)}</td>
+                  <tr key={order.id} className="border-b border-[var(--border-color)] text-[var(--text-secondary)]">
+                    <td className="py-3 pr-4 font-medium text-[var(--text-primary)]">#{order.id}</td>
+                    <td className="py-3 pr-4 font-semibold text-blue-500">{formatMoney(order.total_amount)}</td>
                     <td className="py-3 pr-4">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(order.status)}`}>
                         {order.status}
                       </span>
                     </td>
-                    <td className="py-3 pr-4 capitalize text-slate-300">{String(order.payment_method || 'cash_on_delivery').replaceAll('_', ' ')}</td>
-                    <td className="py-3 text-slate-300">{new Date(order.created_at).toLocaleString()}</td>
+                    <td className="py-3 pr-4 capitalize">{String(order.payment_method || 'cash_on_delivery').replaceAll('_', ' ')}</td>
+                    <td className="py-3">{new Date(order.created_at).toLocaleString()}</td>
                     <td className="py-3 text-right">
                       <button
                         type="button"

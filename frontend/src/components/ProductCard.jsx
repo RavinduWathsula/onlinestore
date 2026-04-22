@@ -21,13 +21,13 @@ export default function ProductCard({ product, onAdd }) {
         />
       </Link>
       <div className="space-y-3 p-4">
-        <p className="text-xs uppercase tracking-widest text-blue-200/80">{product.category_name || 'General'}</p>
-        <Link to={`/products/${product.id}`} className="block line-clamp-2 text-lg font-semibold hover:text-blue-200">
+        <p className="text-xs uppercase tracking-widest text-blue-500/80">{product.category_name || 'General'}</p>
+        <Link to={`/products/${product.id}`} className="block line-clamp-2 text-lg font-semibold text-[var(--text-primary)] hover:text-blue-500">
           {product.name}
         </Link>
         <div className="flex items-center justify-between">
-          <p className="text-xl font-bold text-blue-300">LKR {Number(product.price).toFixed(2)}</p>
-          <p className={`text-xs ${Number(product.stock) > 0 ? 'text-emerald-300' : 'text-red-300'}`}>
+          <p className="text-xl font-bold text-blue-500">LKR {Number(product.price).toFixed(2)}</p>
+          <p className={`text-xs ${Number(product.stock) > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
             {Number(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
           </p>
         </div>

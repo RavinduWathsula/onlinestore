@@ -41,11 +41,11 @@ export default function LoginPage() {
       <div className="auth-grid auth-grid--single">
         <div className="auth-form-panel auth-form-panel--login">
           <p className="auth-eyebrow">NeoCart Access</p>
-          <h2 className="text-3xl font-bold">Login</h2>
-          <p className="mt-2 text-slate-300">Access your NeoCart account.</p>
+          <h2 className="text-3xl font-bold text-[var(--text-primary)]">Login</h2>
+          <p className="mt-2 text-[var(--text-secondary)]">Access your NeoCart account.</p>
           <form className="mt-6 space-y-4" onSubmit={onSubmit} autoComplete="off">
             <div>
-              <label className="mb-1 block text-sm text-slate-300">Email</label>
+              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Email</label>
               <input
                 className="input-field"
                 type="email"
@@ -57,7 +57,7 @@ export default function LoginPage() {
               {errors.email && <p className="mt-1 text-sm text-red-300">{errors.email}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm text-slate-300">Password</label>
+              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Password</label>
               <input
                 className="input-field"
                 type="password"
@@ -92,7 +92,7 @@ export default function LoginPage() {
               <span>Track all your orders in one place.</span>
             </div>
           </div>
-          <p className="mt-5 text-sm text-slate-300">
+          <p className="mt-5 text-sm text-[var(--text-secondary)]">
             New user?{' '}
             <Link to="/register" className="text-blue-300 hover:text-blue-200">
               Create account

@@ -65,12 +65,12 @@ export default function CartPage() {
     <div className="relative space-y-6 overflow-hidden rounded-3xl p-2">
       <DotsBackground3D />
       <section className="glass p-6">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Your Cart</h1>
-        <p className="mt-2 text-slate-400">Increase or decrease quantity and see totals update automatically.</p>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">Your Cart</h1>
+        <p className="mt-2 text-[var(--text-secondary)]">Increase or decrease quantity and see totals update automatically.</p>
       </section>
       <section className="glass p-6">
         {items.length === 0 ? (
-          <p className="text-slate-400">Cart is empty.</p>
+          <p className="text-[var(--text-secondary)]">Cart is empty.</p>
         ) : (
           <div className="space-y-4">
             {items.map((item) => (
@@ -82,9 +82,9 @@ export default function CartPage() {
                     className="h-20 w-20 rounded-xl object-cover"
                   />
                   <div className="min-w-44 flex-1">
-                    <h3 className="text-lg font-semibold">{item.name}</h3>
-                    <p className="text-sm text-slate-400">Unit price: LKR {Number(item.price).toFixed(2)}</p>
-                    <p className="mt-1 text-xs text-slate-500">In stock: {item.stock}</p>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">{item.name}</h3>
+                    <p className="text-sm text-[var(--text-secondary)]">Unit price: LKR {Number(item.price).toFixed(2)}</p>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">In stock: {item.stock}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -121,8 +121,8 @@ export default function CartPage() {
                     </button>
                   </div>
                   <div className="min-w-32 text-right">
-                    <p className="text-xs uppercase tracking-wider text-slate-500">Line total</p>
-                    <p className="text-xl font-bold text-blue-300">LKR {(Number(item.price) * Number(item.quantity)).toFixed(2)}</p>
+                    <p className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Line total</p>
+                    <p className="text-xl font-bold text-blue-500">LKR {(Number(item.price) * Number(item.quantity)).toFixed(2)}</p>
                   </div>
                   <button
                     type="button"
@@ -140,8 +140,8 @@ export default function CartPage() {
       </section>
       <section className="cart-summary-total flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
-          <p className="text-sm text-slate-400">Items: {summary.count}</p>
-          <h2 className="text-3xl font-bold text-blue-300">LKR {Number(summary.total || 0).toFixed(2)}</h2>
+          <p className="text-sm text-[var(--text-secondary)]">Items: {summary.count}</p>
+          <h2 className="text-3xl font-bold text-blue-500">LKR {Number(summary.total || 0).toFixed(2)}</h2>
         </div>
         <button type="button" className="btn-primary" onClick={() => navigate('/checkout')} disabled={items.length === 0}>
           Proceed to checkout
