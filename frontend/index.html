@@ -9,26 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body class="text-white bg-slate-950">
-    <div id="root">
-      <main style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:Manrope,system-ui,sans-serif;">
-        <section style="max-width:720px;background:rgba(15,23,42,.7);backdrop-filter:blur(10px);border:1px solid rgba(148,163,184,.2);border-radius:24px;padding:28px;box-shadow:0 24px 60px rgba(2,6,23,.45);">
-          <h1 style="margin:0 0 12px;font-size:clamp(24px,3vw,34px);font-weight:800;">NeoCart Frontend</h1>
-          <p style="margin:0 0 8px;color:#cbd5e1;line-height:1.6;">If you see this message, React is not running yet. Start the Vite dev server to load the app.</p>
-          <ol style="margin:10px 0 0 18px;color:#e2e8f0;line-height:1.8;">
-            <li>Open terminal in frontend folder</li>
-            <li>Run npm install</li>
-            <li>Run npm run dev</li>
-            <li>Open http://localhost/NovaStore/frontend/</li>
-          </ol>
-        </section>
-      </main>
-    </div>
-    <script>
-      (function () {
-        // Open the production build automatically when this file is served by Apache.
-        var target = './dist/index.html' + location.search + location.hash;
-        location.replace(target);
-      })();
-    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
