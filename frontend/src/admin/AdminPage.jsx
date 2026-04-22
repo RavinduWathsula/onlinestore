@@ -253,33 +253,42 @@ export default function AdminPage() {
   const dailySales = filteredOrders.reduce((acc, order) => {
     const dateValue = order.created_at || order.createdAt || order.date;
     if (!dateValue) return acc;
-
     const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) return acc;
-
     const key = date.toISOString().slice(0, 10);
     const amount = Number(order.total_amount || 0);
     acc[key] = (acc[key] || 0) + amount;
     return acc;
   }, {});
 
-  const chartRows = Object.entries(dailySales)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-7);
-  const maxDayAmount = chartRows.reduce((max, [, amount]) => Math.max(max, amount), 1);
-  const minDayAmount = chartRows.reduce((min, [, amount]) => Math.min(min, amount), Number.POSITIVE_INFINITY);
-  const chartSpan = maxDayAmount - (Number.isFinite(minDayAmount) ? minDayAmount : 0) || 1;
+  // Generate continuous last 7 days to avoid gaps in the line chart
+  const chartRows = useMemo(() => {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      days.push([key, dailySales[key] || 0]);
+    }
+    return days;
+  }, [dailySales]);
+
+  const maxDayAmount = Math.max(...chartRows.map(([, amount]) => amount), 1);
+  const minDayAmount = Math.min(...chartRows.map(([, amount]) => amount));
+  const chartSpan = maxDayAmount - minDayAmount || 1;
+
   const linePoints = chartRows
     .map(([, amount], index) => {
-      const x = chartRows.length === 1 ? 50 : (index / (chartRows.length - 1)) * 100;
-      const normalized = (amount - (Number.isFinite(minDayAmount) ? minDayAmount : 0)) / chartSpan;
+      const x = (index / (chartRows.length - 1)) * 100;
+      const normalized = (amount - minDayAmount) / chartSpan;
       const y = 88 - normalized * 64;
       return `${x},${y}`;
     })
     .join(' ');
-  const areaPoints = chartRows.length > 0 ? `0,94 ${linePoints} 100,94` : '';
-  const lastDayAmount = chartRows.length ? chartRows[chartRows.length - 1][1] : 0;
-  const prevDayAmount = chartRows.length > 1 ? chartRows[chartRows.length - 2][1] : 0;
+
+  const areaPoints = `0,94 ${linePoints} 100,94`;
+  const lastDayAmount = chartRows[chartRows.length - 1][1];
+  const prevDayAmount = chartRows[chartRows.length - 2][1];
   const trendDiff = lastDayAmount - prevDayAmount;
   const trendPercent = prevDayAmount > 0 ? (trendDiff / prevDayAmount) * 100 : 0;
   const adminUser = users.find((user) => user.role === 'admin');
@@ -718,14 +727,14 @@ export default function AdminPage() {
                     <polyline points={areaPoints} className="admin-line-area" />
                     <polyline points={linePoints} className="admin-line-path" />
                     {chartRows.map(([date, amount], index) => {
-                      const x = chartRows.length === 1 ? 50 : (index / (chartRows.length - 1)) * 100;
-                      const normalized = (amount - (Number.isFinite(minDayAmount) ? minDayAmount : 0)) / chartSpan;
+                      const x = (index / (chartRows.length - 1)) * 100;
+                      const normalized = (amount - minDayAmount) / chartSpan;
                       const y = 88 - normalized * 64;
                       const prevAmount = index > 0 ? chartRows[index - 1][1] : amount;
                       const isUp = amount >= prevAmount;
                       return (
                         <g key={date}>
-                          <circle cx={x} cy={y} r="2.3" className={isUp ? 'admin-line-dot admin-line-dot--up' : 'admin-line-dot admin-line-dot--down'} />
+                          <circle cx={x} cy={y} r="2" className={isUp ? 'admin-line-dot admin-line-dot--up' : 'admin-line-dot admin-line-dot--down'} />
                         </g>
                       );
                     })}

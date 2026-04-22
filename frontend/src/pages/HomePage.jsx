@@ -523,11 +523,15 @@ export default function HomePage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {categories.map((category) => (
-            <div key={category.name} className={`category-card ${category.tone}`}>
+            <Link 
+              key={category.name} 
+              to={`/products?category=${category.name}`} 
+              className={`category-card ${category.tone} block transition-transform hover:scale-[1.02]`}
+            >
               <category.icon className="mb-3 text-blue-300" size={22} />
               <h3 className="text-lg font-semibold">{category.name}</h3>
               <p className="mt-2 text-sm text-slate-400">{category.blurb}</p>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
