@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import AuthBackground3D from '../components/AuthBackground3D';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -34,7 +33,6 @@ export default function RegisterPage() {
 
   return (
     <section className="auth-shell">
-      <AuthBackground3D />
       <div className="auth-grid auth-grid--single">
         <div className="auth-form-panel auth-form-panel--register">
           <p className="auth-eyebrow">Start Shopping</p>

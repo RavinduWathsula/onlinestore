@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ordersApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
-import DotsBackground3D from '../components/DotsBackground3D';
 import { useToast } from '../context/ToastContext';
 
 function statusClass(status) {
@@ -191,7 +190,6 @@ export default function DashboardPage() {
 
   return (
     <div className="relative space-y-6 overflow-hidden rounded-3xl p-2">
-      <DotsBackground3D />
       <section className="glass p-6 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

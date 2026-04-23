@@ -43,7 +43,10 @@ body {
 }
 
 .page-bg {
-  background: var(--bg-primary);
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url('./assets/global-bg-v2.png') no-repeat center center fixed;
+  background-size: cover;
   transition: background-color 0.3s ease;
 }
 
@@ -2329,3 +2332,120 @@ body {
       grid-template-columns: 1fr;
     }
   }
+
+/* Creative Hero: Holographic Showcase */
+.holo-showcase {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  perspective: 1000px;
+}
+
+.holo-container {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: holoFloat 6s ease-in-out infinite;
+}
+
+.holo-image {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.4)) drop-shadow(0 0 60px rgba(167, 139, 250, 0.2));
+  z-index: 2;
+  position: relative;
+}
+
+.holo-glow {
+  position: absolute;
+  inset: 10%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  filter: blur(40px);
+  animation: glowPulse 4s ease-in-out infinite;
+  z-index: 1;
+}
+
+.holo-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  animation: rotateClockwise 20s linear infinite;
+}
+
+.holo-ring--small {
+  inset: 15%;
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  animation: rotateCounterClockwise 15s linear infinite;
+}
+
+.holo-data-node {
+  position: absolute;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+}
+
+.holo-data-node--1 { top: 10%; right: 0; animation: nodeFloat 4s ease-in-out infinite; }
+.holo-data-node--2 { bottom: 20%; left: -5%; animation: nodeFloat 5s ease-in-out infinite reverse; }
+.holo-data-node--3 { bottom: 5%; right: 10%; animation: nodeFloat 4.5s ease-in-out infinite 1s; }
+
+@keyframes holoFloat {
+  0%, 100% { transform: translateY(0) rotateX(2deg); }
+  50% { transform: translateY(-20px) rotateX(-2deg); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+@keyframes rotateClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotateCounterClockwise {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes nodeFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.stat-chip {
+  @apply rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md;
+  transition: all 0.3s ease;
+}
+
+.stat-chip--animated {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+.stat-chip--delay-1 { animation-delay: 0.1s; }
+.stat-chip--delay-2 { animation-delay: 0.2s; }
+
+@keyframes fadeInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

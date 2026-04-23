@@ -178,7 +178,6 @@ export default function HomePage() {
   const [couponDrops, setCouponDrops] = useState(fallbackCouponDrops);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const canvasRef = useRef(null);
-  const pageCanvasRef = useRef(null);
   const displayFeatured = featured.length ? featured : fallbackFeatured;
 
   useEffect(() => {
@@ -198,88 +197,6 @@ export default function HomePage() {
       .catch(() => setCouponDrops(fallbackCouponDrops));
   }, []);
 
-  useEffect(() => {
-    const canvas = pageCanvasRef.current;
-    if (!canvas) return;
-
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
-    let animationFrame;
-    let width = 0;
-    let height = 0;
-    let tick = 0;
-
-    const nodes = Array.from({ length: 70 }, () => ({
-      x: Math.random(),
-      y: Math.random(),
-      z: Math.random() * 0.7 + 0.3,
-      vx: (Math.random() - 0.5) * 0.00025,
-      vy: (Math.random() - 0.5) * 0.00025,
-    }));
-
-    const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.max(1, Math.floor(width * window.devicePixelRatio));
-      canvas.height = Math.max(1, Math.floor(height * window.devicePixelRatio));
-      context.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
-    };
-
-    const draw = () => {
-      tick += 0.005;
-      context.clearRect(0, 0, width, height);
-
-      // Theme-aware background
-      context.fillStyle = theme === 'dark' ? '#000000' : '#f0f2f5';
-      context.fillRect(0, 0, width, height);
-
-      for (let i = 0; i < nodes.length; i += 1) {
-        const node = nodes[i];
-        node.x += node.vx * node.z;
-        node.y += node.vy * node.z;
-
-        if (node.x < -0.05 || node.x > 1.05) node.vx *= -1;
-        if (node.y < -0.05 || node.y > 1.05) node.vy *= -1;
-
-        const x = node.x * width;
-        const y = node.y * height;
-        const radius = 1 + node.z * 2.6;
-        context.beginPath();
-        context.arc(x, y, radius, 0, Math.PI * 2);
-        // White dots with depth-based opacity
-        context.fillStyle = `rgba(255, 255, 255, ${0.1 + node.z * 0.35})`;
-        context.fill();
-
-        for (let j = i + 1; j < nodes.length; j += 1) {
-          const other = nodes[j];
-          const ox = other.x * width;
-          const oy = other.y * height;
-          const dist = Math.hypot(ox - x, oy - y);
-          if (dist < 170) {
-            const opacity = (1 - dist / 170) * (theme === 'dark' ? 0.15 : 0.08);
-            context.strokeStyle = theme === 'dark' ? `rgba(255, 255, 255, ${opacity})` : `rgba(15, 23, 42, ${opacity})`;
-            context.lineWidth = 0.5;
-            context.beginPath();
-            context.moveTo(x, y);
-            context.lineTo(ox, oy);
-            context.stroke();
-          }
-        }
-      }
-
-      animationFrame = window.requestAnimationFrame(draw);
-    };
-
-    resize();
-    draw();
-
-    window.addEventListener('resize', resize);
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -376,7 +293,6 @@ export default function HomePage() {
 
   return (
     <div className="home-shell relative space-y-14">
-      <canvas ref={pageCanvasRef} className="page-canvas-3d" aria-hidden="true" />
       <section className="home-hero home-section relative overflow-hidden rounded-3xl border border-[var(--border-color)] p-8 md:p-12">
         <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
         <div className="pointer-events-none absolute -left-16 top-12 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl" />
@@ -417,22 +333,29 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div className="feature-panel">
-            <p className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-              <Rocket size={14} className="text-blue-500" /> Weekly launch deals
-            </p>
-            <h3 className="mt-3 text-2xl font-bold text-[var(--text-primary)]">Curated drops from fast-growing brands</h3>
-            <p className="mt-3 text-sm text-[var(--text-secondary)]">
-              Grab limited picks from tech, fashion, and smart home categories with secured fast delivery.
-            </p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-4">
-                <p className="text-xs text-[var(--text-muted)]">Next-day shipping</p>
-                <p className="text-lg font-semibold text-emerald-500">Available</p>
+          <div className="holo-showcase">
+            <div className="holo-container">
+              <div className="holo-glow" />
+              <div className="holo-ring" />
+              <div className="holo-ring holo-ring--small" />
+              <img 
+                src="/src/assets/hero-hologram.png" 
+                alt="Futuristic Showcase" 
+                className="holo-image" 
+              />
+              
+              {/* Creative Idea: Interactive Data Nodes */}
+              <div className="holo-data-node holo-data-node--1">
+                <Sparkles size={14} className="text-blue-400" />
+                <span>Next-Gen Audio</span>
               </div>
-              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--glass-bg)] p-4">
-                <p className="text-xs text-[var(--text-muted)]">Secure payments</p>
-                <p className="text-lg font-semibold text-blue-500">PCI-ready</p>
+              <div className="holo-data-node holo-data-node--2">
+                <ShieldCheck size={14} className="text-emerald-400" />
+                <span>Verified Tech</span>
+              </div>
+              <div className="holo-data-node holo-data-node--3">
+                <Rocket size={14} className="text-indigo-400" />
+                <span>Fast Launch</span>
               </div>
             </div>
           </div>

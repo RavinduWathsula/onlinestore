@@ -4,7 +4,6 @@ import { adminApi, couponsApi, ordersApi, productsApi } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
-import DotsBackground3D from '../components/DotsBackground3D';
 import brandLogo from '../assets/neocart-logo.svg';
 import adminAvatar from '../assets/admin-avatar.svg';
 
@@ -301,7 +300,6 @@ export default function AdminPage() {
 
   return (
     <div className="admin-shell relative">
-      <DotsBackground3D />
       <div className="admin-layout relative z-10">
         <aside className="admin-sidebar">
           <div className="admin-brand">
