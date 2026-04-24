@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { ArrowRight, Eye, EyeOff, Lock, ShoppingCart, User, Wallet } from 'lucide-react';
+import authVisual from '../assets/auth-visual.png';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -10,95 +12,187 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  // Scroll to top when page loads
-  const [scrolled] = useState(() => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
-    return true;
-  });
+  }, []);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
     setLoading(true);
     try {
       await register(form);
-      showToast('Account created. Please login to continue.');
+      showToast('Membership initialized. Please authorize to enter.');
       navigate('/login');
     } catch (error) {
       const response = error?.response?.data;
-      setErrors(response?.errors || { form: response?.message || 'Registration failed' });
+      setErrors(response?.errors || { form: response?.message || 'Membership initialization failed' });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoogleRegister = () => {
+    showToast('Connecting to secure Google Cloud hub...');
+  };
+
   return (
-    <section className="auth-shell">
-      <div className="auth-grid auth-grid--single">
-        <div className="auth-form-panel auth-form-panel--register">
-          <p className="auth-eyebrow">Start Shopping</p>
-          <h2 className="text-3xl font-bold text-[var(--text-primary)]">Register</h2>
-          <p className="mt-2 text-[var(--text-secondary)]">Create your account to start shopping.</p>
-          <form className="mt-6 space-y-4" onSubmit={onSubmit} autoComplete="off">
-            <div>
-              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Full name</label>
-              <input
-                className="input-field"
-                type="text"
-                autoComplete="off"
-                placeholder="John Doe"
-                value={form.name}
-                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              />
-              {errors.name && <p className="mt-1 text-sm text-red-300">{errors.name}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Email</label>
-              <input
-                className="input-field"
-                type="email"
-                autoComplete="off"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-              />
-              {errors.email && <p className="mt-1 text-sm text-red-300">{errors.email}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-sm text-[var(--text-secondary)]">Password</label>
-              <input
-                className="input-field"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Choose a strong password"
-                value={form.password}
-                onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
-              />
-              {errors.password && <p className="mt-1 text-sm text-red-300">{errors.password}</p>}
-            </div>
-            <div className="auth-meta-row">
-              <p className="text-xs text-slate-400">Use at least 8 characters with letters and numbers.</p>
-            </div>
-            {errors.form && <p className="text-sm text-red-300">{errors.form}</p>}
-            <button disabled={loading} className="btn-primary w-full" type="submit">
-              {loading ? 'Creating account...' : 'Create account'}
-            </button>
-          </form>
-          <div className="auth-helper-grid">
-            <div className="auth-helper-chip">
-              <strong>Member-only drops</strong>
-              <span>Get first access to weekly releases.</span>
-            </div>
-            <div className="auth-helper-chip">
-              <strong>Smart recommendations</strong>
-              <span>Products tailored to your interests.</span>
-            </div>
+    <section className="flex min-h-screen w-full flex-col bg-[#101112] text-slate-100 md:flex-row">
+      <section className="relative min-h-[46vh] w-full items-center justify-center overflow-hidden bg-[#05070b] md:flex md:min-h-screen md:w-1/2">
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_20%_20%,rgba(14,165,233,0.2)_0%,rgba(5,7,11,0.94)_45%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,0.2)_0%,rgba(5,7,11,0.95)_42%)]" />
+
+        <img
+          src={authVisual}
+          alt="Colorful futuristic commerce visual"
+          className="auth-visual-image"
+        />
+        <div className="auth-visual-overlay" />
+
+        <div className="relative z-10 max-w-lg px-8 py-10 md:px-10">
+          <div className="mb-4 inline-block rounded-full border border-blue-400/25 bg-blue-500/10 px-4 py-1.5 backdrop-blur-sm">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-300">Membership Protocol</span>
           </div>
-          <p className="mt-5 text-sm text-[var(--text-secondary)]">
-            Already registered?{' '}
-            <Link to="/login" className="text-blue-300 hover:text-blue-200">
-              Login
-            </Link>
+          <h1 className="mb-5 text-4xl font-black tracking-tight text-white md:text-[3.15rem] md:leading-[1.02]">Join the NeoCart ecosystem.</h1>
+          <p className="max-w-md text-[15px] leading-relaxed text-slate-300">
+            Step into a realm of curated digital assets and secure transactions. Your journey into the decentralized future starts here.
           </p>
+
+          <div className="mt-10 flex items-center gap-4">
+            <div className="flex -space-x-2.5">
+              {['N', 'E', 'O'].map((char) => (
+                <div
+                  key={char}
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-[#0b1220] bg-gradient-to-br from-slate-700 to-slate-800 text-[10px] font-bold text-slate-100 shadow-[0_0_18px_rgba(10,211,255,0.08)]"
+                >
+                  {char}
+                </div>
+              ))}
+            </div>
+            <span className="text-sm italic text-slate-400">Awaiting your identity link</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="flex flex-1 items-center justify-center bg-[#131315] px-6 py-10">
+        <div className="w-full max-w-[430px]">
+          <div className="mb-10 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-[0_0_22px_rgba(59,130,246,0.28)]">
+              <ShoppingCart className="text-white" size={20} />
+            </div>
+            <span className="text-[1.6rem] font-black tracking-tight text-white">NeoCart</span>
+          </div>
+
+          <header className="mb-8">
+            <h2 className="mb-1 text-[2.05rem] font-semibold text-slate-100">Create account</h2>
+            <p className="text-sm text-slate-400">Initialize your secure ecosystem profile.</p>
+          </header>
+
+          <form onSubmit={onSubmit} autoComplete="off" className="space-y-5">
+            <div className="space-y-3.5">
+              <div className="group">
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 group-focus-within:text-blue-300">Full Name</label>
+                <div className="flex h-12 items-center rounded-[10px] border border-transparent bg-[#1b1b1d] px-4 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.5),inset_-1px_-1px_3px_rgba(255,255,255,0.05)] transition-all group-focus-within:border-blue-500/50">
+                  <User size={16} className="mr-2 text-slate-500" />
+                  <input
+                    type="text"
+                    className="w-full border-none bg-transparent text-sm text-slate-100 placeholder:text-slate-700 focus:outline-none"
+                    placeholder="Full identity name"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+                {errors.name ? <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.08em] text-red-400">{errors.name}</p> : null}
+              </div>
+
+              <div className="group">
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 group-focus-within:text-blue-300">Email Address</label>
+                <div className="flex h-12 items-center rounded-[10px] border border-transparent bg-[#1b1b1d] px-4 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.5),inset_-1px_-1px_3px_rgba(255,255,255,0.05)] transition-all group-focus-within:border-blue-500/50">
+                  <span className="mr-2 text-slate-500">@</span>
+                  <input
+                    type="email"
+                    className="w-full border-none bg-transparent text-sm text-slate-100 placeholder:text-slate-700 focus:outline-none"
+                    placeholder="curator@neocart.io"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  />
+                </div>
+                {errors.email ? <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.08em] text-red-400">{errors.email}</p> : null}
+              </div>
+
+              <div className="group">
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 group-focus-within:text-blue-300">Password</label>
+                <div className="flex h-12 items-center rounded-[10px] border border-transparent bg-[#1b1b1d] px-4 shadow-[inset_2px_2px_5px_rgba(0,0,0,0.5),inset_-1px_-1px_3px_rgba(255,255,255,0.05)] transition-all group-focus-within:border-blue-500/50">
+                  <Lock size={16} className="mr-2 text-slate-500" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    className="w-full border-none bg-transparent text-sm text-slate-100 placeholder:text-slate-700 focus:outline-none"
+                    placeholder="••••••••••••"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-500 transition-colors hover:text-slate-200">
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {errors.password ? <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.08em] text-red-400">{errors.password}</p> : null}
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500">By applying, you agree to NeoCart governance terms and security protocols.</p>
+
+            {errors.form ? (
+              <p className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs font-bold uppercase tracking-[0.08em] text-red-400">{errors.form}</p>
+            ) : null}
+
+            <button
+              disabled={loading}
+              type="submit"
+              className="group flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-[12px] font-bold uppercase tracking-[0.22em] text-white transition-all hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+            >
+              {loading ? 'Processing...' : 'Initialize Membership'}
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+            </button>
+
+            <div className="my-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/5" />
+              <span className="text-[11px] uppercase tracking-[0.14em] text-slate-600">Or connect via</span>
+              <div className="h-px flex-1 bg-white/5" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={handleGoogleRegister}
+                className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 py-2.5 text-sm text-slate-100 backdrop-blur-xl transition-all hover:bg-white/10"
+                type="button"
+              >
+                <span className="text-xs font-bold">G</span>
+                Google Cloud
+              </button>
+              <button
+                className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 py-2.5 text-sm text-slate-100 backdrop-blur-xl transition-all hover:bg-white/10"
+                type="button"
+              >
+                <Wallet size={16} />
+                Web3 Wallet
+              </button>
+            </div>
+          </form>
+
+          <footer className="mt-9 text-center text-[13px] text-slate-500">
+            Already initialized?{' '}
+            <Link className="font-bold text-blue-400 hover:underline" to="/login">
+              Authorize Identity
+            </Link>
+          </footer>
+        </div>
+      </section>
+
+      <div className="fixed bottom-6 right-6 z-50 hidden md:block">
+        <div className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-slate-900/70 px-4 py-2 backdrop-blur-xl">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-400">Portal Status: Nominal</span>
         </div>
       </div>
     </section>

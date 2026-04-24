@@ -3,18 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #000000;
-  --bg-secondary: #020617;
+  --bg-primary: #020617;
+  --bg-secondary: #0a0a0a;
+  --bg-card: rgba(15, 23, 42, 0.6);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --border-color: rgba(148, 163, 184, 0.24);
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --nav-bg: linear-gradient(120deg, rgba(3, 7, 18, 0.92), rgba(18, 9, 39, 0.88), rgba(8, 18, 45, 0.9));
-  --card-bg: linear-gradient(145deg, rgba(8, 20, 46, 0.76), rgba(19, 37, 74, 0.52));
-  --accent-glow: rgba(59, 130, 246, 0.35);
-  --input-bg: rgba(15, 23, 42, 0.7);
+  --accent-blue: #3b82f6;
+  --accent-purple: #9333ea;
+  --accent-cyan: #22d3ee;
+  --border-color: rgba(148, 163, 184, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --nav-bg: rgba(2, 6, 23, 0.8);
   color-scheme: dark;
 }
 
@@ -43,10 +44,11 @@ body {
 }
 
 .page-bg {
-  background: 
-    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-    url('./assets/global-bg-v2.png') no-repeat center center fixed;
-  background-size: cover;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(147, 51, 234, 0.14), transparent 32%),
+    radial-gradient(circle at 88% 22%, rgba(99, 102, 241, 0.12), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(139, 92, 246, 0.1), transparent 38%),
+    var(--bg-primary);
   transition: background-color 0.3s ease;
 }
 
@@ -54,12 +56,31 @@ body {
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
-  border-radius: 1.25rem;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-.btn-primary {
-  @apply inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 px-5 py-3 font-semibold text-white transition hover:scale-[1.02] hover:from-blue-400 hover:to-indigo-400;
+.btn-premium {
+  @apply relative inline-flex items-center justify-center overflow-hidden rounded-xl px-6 py-3 font-bold text-white transition-all duration-300;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-premium:hover {
+  @apply scale-[1.02] brightness-110;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+}
+
+.btn-premium::after {
+  content: '';
+  @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-500;
+}
+
+.btn-premium:hover::after {
+  @apply translate-x-full;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-6 py-3 font-bold text-white transition-all hover:bg-white/10 hover:border-white/20;
 }
 
 .btn-secondary {
@@ -2448,4 +2469,277 @@ body {
 @keyframes fadeInUp {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+/* Split Auth Layout */
+.auth-split-shell {
+  min-height: 100vh;
+  background: #0a0a0a;
+  display: flex;
+  overflow: hidden;
+}
+
+.auth-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+.auth-visual-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  overflow: hidden;
+}
+
+.auth-visual-content {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
+}
+
+.auth-content-panel {
+  background: #0f0f0f;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+  position: relative;
+}
+
+.auth-form-wrapper {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.auth-tab--active {
+  background: rgba(59, 130, 246, 0.1);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3);
+}
+
+.auth-input-group {
+  margin-bottom: 1.5rem;
+}
+
+.auth-input-group label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.auth-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 12px;
+  color: #475569;
+}
+
+.auth-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 12px 12px 40px;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.auth-input:focus {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.auth-btn-gradient {
+  width: 100%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6, #d946ef);
+  background-size: 200% 200%;
+  animation: authGradientMove 5s ease infinite;
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 1rem;
+  letter-spacing: 0.1em;
+  box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+}
+
+.auth-btn-gradient:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.5);
+  filter: brightness(1.2);
+}
+
+@keyframes authGradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.auth-social-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 2rem;
+}
+
+.auth-social-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.auth-social-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.auth-footer-status {
+  position: absolute;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  background: rgba(16, 185, 129, 0.03);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  padding: 8px 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.auth-status-dot {
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 999px;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.discount-ticker-track {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  white-space: nowrap;
+  width: max-content;
+  padding-inline: 0.75rem;
+  animation: discountTickerScroll 24s linear infinite;
+}
+
+.discount-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 181, 253, 0.28);
+  background: rgba(139, 92, 246, 0.14);
+  padding: 0.42rem 0.85rem;
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: rgb(237, 233, 254);
+}
+
+@keyframes discountTickerScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.auth-visual-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.38;
+  filter: saturate(1.25) contrast(1.1);
+  z-index: 0;
+}
+
+.auth-visual-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 24% 34%, rgba(14, 165, 233, 0.34), rgba(2, 6, 23, 0) 34%),
+    radial-gradient(circle at 80% 20%, rgba(129, 140, 248, 0.28), rgba(2, 6, 23, 0) 30%),
+    linear-gradient(125deg, rgba(2, 6, 23, 0.55), rgba(7, 16, 34, 0.26) 42%, rgba(2, 6, 23, 0.7));
+  z-index: 0;
+}
+
+@media (max-width: 900px) {
+  .auth-split-grid {
+    grid-template-columns: 1fr;
+  }
+  .auth-visual-panel {
+    display: none;
+  }
+  .auth-content-panel {
+    padding: 2rem;
+  }
+
+  .auth-visual-image {
+    opacity: 0.22;
+  }
 }

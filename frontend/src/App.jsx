@@ -7,6 +7,7 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 import DashboardPage from './pages/DashboardPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
@@ -50,6 +51,7 @@ export default function App() {
   const location = useLocation();
   const { ready, isAdmin } = useAuth();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAdminAuthPage = location.pathname === '/admin/login';
   const isAdminPage = location.pathname.startsWith('/admin');
 
   useEffect(() => {
@@ -60,7 +62,7 @@ export default function App() {
     return <LoadingSpinner />;
   }
 
-  const showStoreLayout = !isAdminPage;
+  const showStoreLayout = !isAdminPage && !isAdminAuthPage;
 
   return (
     <div className="page-bg relative min-h-screen text-white">
@@ -76,7 +78,11 @@ export default function App() {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route
             path="/home"
-            element={<HomePage />}
+            element={
+              <StoreRoute>
+                <HomePage />
+              </StoreRoute>
+            }
           />
           <Route
             path="/products"
@@ -109,6 +115,10 @@ export default function App() {
                 <RegisterPage />
               </GuestRoute>
             }
+          />
+          <Route
+            path="/admin/login"
+            element={<AdminLoginPage />}
           />
           <Route
             path="/dashboard"
