@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
-import { Sun, Moon, Search, ShoppingBag, User, LogOut, Bell, CreditCard } from 'lucide-react';
+import { Sun, Moon, Search, ShoppingBag, LogOut, Bell } from 'lucide-react';
 
 export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -27,11 +27,11 @@ export default function Navbar() {
 
   const itemClass = ({ isActive }) =>
     `px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:text-white ${
-      isActive ? 'text-white' : 'text-slate-500'
+      isActive ? 'text-white' : 'text-slate-300'
     }`;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-slate-950/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-white/20 bg-gradient-to-r from-[#293975]/90 via-[#34468a]/90 to-[#4f5aa9]/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Brand */}
         <Link to="/home" className="flex items-center gap-2">
@@ -57,35 +57,35 @@ export default function Navbar() {
             <input
               type="text"
               placeholder="Search the void..."
-              className="h-10 w-48 rounded-xl border border-white/10 bg-white/5 pl-10 pr-4 text-[10px] font-bold uppercase tracking-widest text-white focus:border-blue-500/50 focus:outline-none"
+              className="h-10 w-48 rounded-xl border border-white/25 bg-white/15 pl-10 pr-4 text-[10px] font-bold uppercase tracking-widest text-white placeholder:text-slate-300 focus:border-cyan-300/60 focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center gap-2 border-l border-white/10 pl-4">
-            <button className="text-slate-400 hover:text-white transition-colors p-2" title="Notifications">
+          <div className="flex items-center gap-2 border-l border-white/25 pl-4">
+            <button className="text-slate-200 hover:text-white transition-colors p-2" title="Notifications">
               <Bell size={20} />
             </button>
-            <button onClick={toggleTheme} className="text-slate-400 hover:text-white transition-colors p-2">
+            <button onClick={toggleTheme} className="text-slate-200 hover:text-white transition-colors p-2">
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
             {isAuthenticated ? (
-              <Link to="/cart" className="relative text-slate-400 hover:text-white transition-colors p-2">
+              <Link to="/cart" className="relative text-slate-100 hover:text-white transition-colors p-2">
                 <ShoppingBag size={20} />
-                <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[8px] font-bold text-white ring-2 ring-slate-950">!</span>
+                <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[8px] font-bold text-white ring-2 ring-[#2f4080]">!</span>
               </Link>
             ) : null}
             
-            {!user ? (
+            {!isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-200 transition-all hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-white"
+                  className="rounded-lg border border-sky-300/30 bg-sky-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white transition-all hover:border-sky-300/60 hover:bg-sky-500/20"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white transition-all hover:brightness-110"
+                  className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white transition-all hover:brightness-110"
                 >
                   Register
                 </Link>

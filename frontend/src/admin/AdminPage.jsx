@@ -7,10 +7,12 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import brandLogo from '../assets/neocart-logo.svg';
 import adminAvatar from '../assets/admin-avatar.svg';
 import {
+  Activity,
   BarChart3,
   Bell,
   Box,
   Circle,
+  Database,
   Globe,
   HelpCircle,
   LayoutGrid,
@@ -20,6 +22,7 @@ import {
   Search,
   Settings,
   ShoppingCart,
+  RefreshCcw,
   TrendingUp,
   Users,
   Warehouse,
@@ -68,24 +71,46 @@ export default function AdminPage() {
   const [categories, setCategories] = useState([]);
   const [couponForm, setCouponForm] = useState(initialCouponForm);
   const [couponList, setCouponList] = useState([]);
+  const [databaseInfo, setDatabaseInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [selectedDate, setSelectedDate] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState(initialEditForm);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const resetToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
 
-  const loadAll = async () => {
-    setLoading(true);
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+    resetToTop();
+    window.requestAnimationFrame(() => {
+      resetToTop();
+    });
+  };
+
+  const loadAll = async ({ silent = false } = {}) => {
+    if (silent) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      const [statsRes, usersRes, ordersRes, productsRes, categoryRes, couponRes] = await Promise.all([
+      const [statsRes, usersRes, ordersRes, productsRes, categoryRes, couponRes, databaseRes] = await Promise.all([
         adminApi.stats(),
         adminApi.users(),
         ordersApi.list(),
         productsApi.list({ page: 1, limit: 100 }),
         productsApi.categories(),
         couponsApi.list({ all: 1 }),
+        adminApi.database(),
       ]);
 
       setStats(statsRes.data.data);
@@ -94,16 +119,46 @@ export default function AdminPage() {
       setProducts(productsRes.data.data || []);
       setCategories(categoryRes.data.data || []);
       setCouponList(couponRes.data.data || []);
+      setDatabaseInfo(databaseRes.data.data || null);
+      setLastSyncedAt(new Date().toISOString());
     } catch {
-      showToast('Failed to load admin data', 'error');
+      if (!silent) {
+        showToast('Failed to load admin data', 'error');
+      }
     } finally {
-      setLoading(false);
+      if (silent) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    loadAll();
+    window.scrollTo(0, 0);
+
+    let active = true;
+
+    const sync = async (silent = false) => {
+      if (!active) return;
+      await loadAll({ silent });
+    };
+
+    sync(false);
+
+    const intervalId = window.setInterval(() => {
+      sync(true);
+    }, 15000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
+
+  useEffect(() => {
+    resetToTop();
+  }, [activeSection]);
 
   const addProduct = async (e) => {
     e.preventDefault();
@@ -314,12 +369,62 @@ export default function AdminPage() {
   const recentOrders = filteredOrders.slice(0, 7);
   const customersWithPhone = customerUsers.filter((user) => String(user.phone || '').trim()).length;
   const customersWithoutPhone = customerUsers.length - customersWithPhone;
+  const totalRevenue = Number(stats?.total_revenue || 0);
+  const priorRevenue = Number(stats?.yesterday_revenue || totalRevenue * 0.89 || 1);
+  const salesChange = priorRevenue > 0 ? ((totalRevenue - priorRevenue) / priorRevenue) * 100 : 0;
+  const customerChange = Number(stats?.customer_change_percent || 8.1);
+  const conversionRate = Number(stats?.conversion_rate || 3.84);
+  const coverageCount = Number(stats?.market_coverage || 142);
+  const recentCustomerSignups = customerUsers.slice(0, 2);
+  const latestOrders = filteredOrders.slice(0, 3);
   const liveItems = [
-    { label: 'New order #8291 from Paris', meta: '2 mins ago • LKR 1,204.00', icon: ShoppingCart, tone: 'blue', status: true },
-    { label: 'New customer registered', meta: '15 mins ago • User ID: 4092', icon: Users, tone: 'purple' },
-    { label: 'Failed login attempt', meta: '1 hour ago • IP: 192.168.1.1', icon: Circle, tone: 'rose' },
-    { label: 'System update completed', meta: '3 hours ago • Version 2.4.0', icon: Box, tone: 'violet' },
-    { label: 'Order #8290 fulfilled', meta: '4 hours ago • Tokyo Hub', icon: ShoppingCart, tone: 'blue' },
+    latestOrders[0]
+      ? {
+          label: `New order #${latestOrders[0].id}`,
+          meta: `${new Date(latestOrders[0].created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${formatCurrency(latestOrders[0].total_amount)}`,
+          icon: ShoppingCart,
+          tone: 'blue',
+          status: true,
+        }
+      : {
+          label: 'Waiting for order activity',
+          meta: 'Live feed will update when data changes',
+          icon: Activity,
+          tone: 'blue',
+          status: true,
+        },
+    recentCustomerSignups[0]
+      ? {
+          label: `Customer ${recentCustomerSignups[0].name}`,
+          meta: `Joined ${new Date(recentCustomerSignups[0].created_at).toLocaleDateString()}`,
+          icon: Users,
+          tone: 'purple',
+        }
+      : {
+          label: 'Customer activity idle',
+          meta: 'Waiting for new registrations',
+          icon: Users,
+          tone: 'purple',
+        },
+    latestOrders[1]
+      ? {
+          label: `Order #${latestOrders[1].id} ${String(latestOrders[1].status || 'pending')}`,
+          meta: `${String(latestOrders[1].payment_method || 'cash_on_delivery').replaceAll('_', ' ')} • ${formatCurrency(latestOrders[1].total_amount)}`,
+          icon: Circle,
+          tone: 'rose',
+        }
+      : {
+          label: 'No new fulfillment updates',
+          meta: 'The feed will reflect new order states automatically',
+          icon: Circle,
+          tone: 'rose',
+        },
+    {
+      label: 'Database snapshot ready',
+      meta: `${databaseInfo?.table_count || 0} tables available • auto-refresh active`,
+      icon: Database,
+      tone: 'violet',
+    },
   ];
 
   if (loading) return <LoadingSpinner label="Loading admin panel" />;
@@ -327,13 +432,16 @@ export default function AdminPage() {
   const palette = {
     blue: 'bg-blue-500/20 text-blue-400',
     purple: 'bg-purple-500/20 text-purple-400',
-    rose: 'bg-error/20 text-error',
-    violet: 'bg-tertiary/20 text-tertiary',
+    rose: 'bg-rose-500/20 text-rose-300',
+    violet: 'bg-violet-500/20 text-violet-300',
   };
 
   return (
-    <div className="min-h-screen bg-[#131315] text-[#e4e2e4]">
-      <aside className="fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-white/10 bg-slate-950/80 py-6 backdrop-blur-[25px]">
+    <div className="admin-executive-shell min-h-screen bg-[#131315] text-[#e4e2e4]">
+      <div className="admin-executive-aurora admin-executive-aurora--one" aria-hidden="true" />
+      <div className="admin-executive-aurora admin-executive-aurora--two" aria-hidden="true" />
+
+      <aside className="admin-executive-sidebar fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-white/10 bg-slate-950/80 py-6 backdrop-blur-[25px]">
         <div className="px-6 mb-10">
           <div className="flex items-center gap-3">
             <img src={brandLogo} alt="NeoCart" className="w-10 h-10 p-1 border rounded-full border-white/10 bg-slate-900" />
@@ -345,34 +453,37 @@ export default function AdminPage() {
         </div>
 
         <nav className="flex-1 px-2 space-y-1">
-          <button type="button" className={`admin-nav-btn ${activeSection === 'dashboard' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('dashboard')}>
+          <button type="button" className={`admin-nav-btn ${activeSection === 'dashboard' ? 'admin-nav-btn--active' : ''}`} onClick={() => handleSectionChange('dashboard')}>
             <LayoutGrid size={16} />
             <span>Dashboard</span>
           </button>
-          <button type="button" className={`admin-nav-btn ${activeSection === 'products' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('products')}>
+          <button type="button" className={`admin-nav-btn ${activeSection === 'products' ? 'admin-nav-btn--active' : ''}`} onClick={() => handleSectionChange('products')}>
             <Warehouse size={16} />
             <span>Inventory</span>
           </button>
-          <button type="button" className={`admin-nav-btn ${activeSection === 'analytics' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('analytics')}>
+          <button type="button" className={`admin-nav-btn ${activeSection === 'analytics' ? 'admin-nav-btn--active' : ''}`} onClick={() => handleSectionChange('analytics')}>
             <BarChart3 size={16} />
             <span>Analytics</span>
           </button>
-          <button type="button" className={`admin-nav-btn ${activeSection === 'customers' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('customers')}>
+          <button type="button" className={`admin-nav-btn ${activeSection === 'customers' ? 'admin-nav-btn--active' : ''}`} onClick={() => handleSectionChange('customers')}>
             <Users size={16} />
             <span>Customers</span>
           </button>
-          <button type="button" className={`admin-nav-btn ${activeSection === 'messages' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('messages')}>
+          <button type="button" className={`admin-nav-btn ${activeSection === 'messages' ? 'admin-nav-btn--active' : ''}`} onClick={() => handleSectionChange('messages')}>
             <Package size={16} />
             <span>Orders</span>
           </button>
-          <button type="button" className={`admin-nav-btn ${activeSection === 'coupons' ? 'admin-nav-btn--active' : ''}`} onClick={() => setActiveSection('coupons')}>
+          <button type="button" className={`admin-nav-btn ${activeSection === 'coupons' ? 'admin-nav-btn--active' : ''}`} onClick={() => handleSectionChange('coupons')}>
             <Settings size={16} />
             <span>Settings</span>
+          </button>
+          <button type="button" className={`admin-nav-btn ${activeSection === 'database' ? 'admin-nav-btn--active' : ''}`} onClick={() => handleSectionChange('database')}>
+            <span>Database</span>
           </button>
         </nav>
 
         <div className="px-4 mt-auto space-y-4">
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 py-3 font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all duration-300 hover:scale-105 active:scale-95" onClick={() => setActiveSection('dashboard')} type="button">
+          <button className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 py-3 font-semibold text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all duration-300 hover:scale-105 active:scale-95" onClick={() => handleSectionChange('dashboard')} type="button">
             Deploy Updates
           </button>
           <div className="pt-4 border-t border-white/5">
@@ -388,10 +499,10 @@ export default function AdminPage() {
         </div>
       </aside>
 
-      <main className="ml-64 min-h-screen p-10 bg-[#131315]">
+      <main className="admin-executive-main ml-64 min-h-screen bg-[#131315] px-8 pb-8 pt-0 lg:px-10 lg:pb-8 lg:pt-1">
         {activeSection === 'dashboard' ? (
-          <>
-            <header className="flex items-center justify-between gap-6 mb-10">
+          <div className="flex flex-col gap-6">
+            <header className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <h2 className="text-3xl font-semibold text-white">Executive Dashboard</h2>
                 <p className="mt-1 text-sm text-slate-400">Welcome back, Administrator. Here's what's happening today.</p>
@@ -407,21 +518,36 @@ export default function AdminPage() {
                 <button className="flex items-center justify-center w-10 h-10 transition-colors rounded-full bg-slate-900 text-slate-400 hover:text-white lg:hidden" type="button" aria-label="Open menu">
                   <Menu size={18} />
                 </button>
-                <div className="flex items-center gap-3 px-4 py-2 border rounded-full border-white/5 bg-surface-container-high">
+                <button
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-slate-900/70 px-4 py-2 text-xs font-semibold text-slate-300 transition-colors hover:text-white"
+                  type="button"
+                  onClick={() => loadAll({ silent: true })}
+                  aria-label="Refresh admin data"
+                >
+                  <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
+                  {refreshing ? 'Syncing' : 'Refresh'}
+                </button>
+                <div className="flex items-center gap-3 rounded-full border border-white/10 bg-slate-900/70 px-4 py-2">
                   <img src={adminAvatar} alt="Admin profile avatar" className="object-cover w-8 h-8 border rounded-full border-blue-500/50" />
                   <span className="font-medium text-white">{adminUser?.name || 'Alex Rivera'}</span>
                 </div>
               </div>
             </header>
 
+            <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.22em] text-slate-500">
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">Live refresh active</span>
+              <span className="rounded-full border border-white/10 bg-slate-900/80 px-3 py-1">Last sync: {lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString() : 'pending'}</span>
+              <span className="rounded-full border border-white/10 bg-slate-900/80 px-3 py-1">Database: {databaseInfo?.database || 'novastore'}</span>
+            </div>
+
             <section className="grid grid-cols-1 gap-5 mb-8 md:grid-cols-4">
               <article className="flex flex-col justify-between p-6 transition-all duration-300 glass-card group rounded-xl hover:border-blue-500/30">
                 <div className="flex items-start justify-between">
                   <div className="p-2 text-blue-400 rounded-lg bg-blue-500/10 glow-blue"><ShoppingCart size={18} /></div>
-                  <span className="text-sm font-semibold text-secondary">{salesChange >= 0 ? '+' : '-'}{Math.abs(salesChange).toFixed(1)}%</span>
+                  <span className="text-sm font-semibold text-emerald-300">{salesChange >= 0 ? '+' : '-'}{Math.abs(salesChange).toFixed(1)}%</span>
                 </div>
                 <div className="mt-12">
-                  <p className="text-xs tracking-widest uppercase text-on-primary-container">Total Revenue</p>
+                  <p className="text-xs tracking-widest uppercase text-slate-400">Total Revenue</p>
                   <h3 className="mt-1 text-2xl font-bold text-white">{formatCurrency(stats?.total_revenue || 0)}</h3>
                 </div>
                 <div className="flex items-end h-12 gap-1 mt-5">
@@ -434,10 +560,10 @@ export default function AdminPage() {
               <article className="flex flex-col justify-between p-6 transition-all duration-300 glass-card group rounded-xl hover:border-purple-500/30">
                 <div className="flex items-start justify-between">
                   <div className="p-2 text-purple-400 rounded-lg bg-purple-500/10 glow-purple"><Users size={18} /></div>
-                  <span className="text-sm font-semibold text-secondary">{customerChange.toFixed(1)}%</span>
+                  <span className="text-sm font-semibold text-emerald-300">{customerChange.toFixed(1)}%</span>
                 </div>
                 <div className="mt-12">
-                  <p className="text-xs tracking-widest uppercase text-on-primary-container">Active Users</p>
+                  <p className="text-xs tracking-widest uppercase text-slate-400">Active Users</p>
                   <h3 className="mt-1 text-2xl font-bold text-white">{customerUsers.length || 84209}</h3>
                 </div>
                 <div className="flex items-end h-12 gap-1 mt-5">
@@ -447,32 +573,32 @@ export default function AdminPage() {
                 </div>
               </article>
 
-              <article className="flex flex-col justify-between p-6 transition-all duration-300 glass-card group rounded-xl hover:border-tertiary/30">
+              <article className="flex flex-col justify-between p-6 transition-all duration-300 glass-card group rounded-xl hover:border-violet-400/35">
                 <div className="flex items-start justify-between">
-                  <div className="p-2 rounded-lg bg-tertiary/10 text-tertiary"><TrendingUp size={18} /></div>
-                  <span className="text-sm font-semibold text-error">-1.2%</span>
+                  <div className="rounded-lg bg-violet-500/15 p-2 text-violet-300"><TrendingUp size={18} /></div>
+                  <span className="text-sm font-semibold text-rose-300">-1.2%</span>
                 </div>
                 <div className="mt-12">
-                  <p className="text-xs tracking-widest uppercase text-on-primary-container">Conversion Rate</p>
+                  <p className="text-xs tracking-widest uppercase text-slate-400">Conversion Rate</p>
                   <h3 className="mt-1 text-2xl font-bold text-white">{Number(conversionRate || 3.84).toFixed(2)}%</h3>
                 </div>
-                <div className="h-2 mt-8 overflow-hidden rounded-full bg-surface-container-highest">
-                  <div className="h-full rounded-full bg-tertiary glow-purple" style={{ width: '75%' }} />
+                <div className="mt-8 h-2 overflow-hidden rounded-full bg-slate-800/80">
+                  <div className="h-full rounded-full bg-violet-500 glow-purple" style={{ width: '75%' }} />
                 </div>
               </article>
 
-              <article className="flex flex-col justify-between p-6 transition-all duration-300 glass-card group rounded-xl hover:border-secondary/30">
+              <article className="flex flex-col justify-between p-6 transition-all duration-300 glass-card group rounded-xl hover:border-blue-300/35">
                 <div className="flex items-start justify-between">
-                  <div className="p-2 rounded-lg bg-secondary-container/10 text-secondary"><Globe size={18} /></div>
-                  <span className="text-sm font-semibold uppercase text-secondary">Global</span>
+                  <div className="rounded-lg bg-blue-500/15 p-2 text-blue-300"><Globe size={18} /></div>
+                  <span className="text-sm font-semibold uppercase text-blue-300">Global</span>
                 </div>
                 <div className="mt-12">
-                  <p className="text-xs tracking-widest uppercase text-on-primary-container">Market Coverage</p>
+                  <p className="text-xs tracking-widest uppercase text-slate-400">Market Coverage</p>
                   <h3 className="mt-1 text-2xl font-bold text-white">{coverageCount} Countries</h3>
                 </div>
                 <div className="flex mt-4 -space-x-2">
                   {['US', 'UK', 'DE', '+139'].map((code, index) => (
-                    <div key={code} className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-900 text-[10px] font-bold text-white ${index === 0 ? 'bg-blue-500' : index === 1 ? 'bg-purple-500' : index === 2 ? 'bg-tertiary' : 'bg-slate-700'}`}>
+                    <div key={code} className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-900 text-[10px] font-bold text-white ${index === 0 ? 'bg-blue-500' : index === 1 ? 'bg-purple-500' : index === 2 ? 'bg-violet-500' : 'bg-slate-700'}`}>
                       {code}
                     </div>
                   ))}
@@ -485,9 +611,9 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between gap-4 mb-6">
                   <h4 className="text-lg font-semibold text-white">Network Performance</h4>
                   <div className="flex gap-2 text-xs font-semibold">
-                    <button className="rounded-full bg-surface-container px-4 py-1.5 text-on-surface-variant hover:text-white" type="button">Daily</button>
+                    <button className="rounded-full bg-slate-800/70 px-4 py-1.5 text-slate-300 hover:text-white" type="button">Daily</button>
                     <button className="rounded-full border border-blue-500/30 bg-blue-600/20 px-4 py-1.5 text-blue-400" type="button">Weekly</button>
-                    <button className="rounded-full bg-surface-container px-4 py-1.5 text-on-surface-variant hover:text-white" type="button">Monthly</button>
+                    <button className="rounded-full bg-slate-800/70 px-4 py-1.5 text-slate-300 hover:text-white" type="button">Monthly</button>
                   </div>
                 </div>
 
@@ -562,7 +688,7 @@ export default function AdminPage() {
                 <div className="relative flex items-center justify-center w-20 h-20 border-4 rounded-full border-slate-800">
                   <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 80 80">
                     <circle cx="40" cy="40" r="36" fill="transparent" stroke="rgba(221,183,255,0.2)" strokeWidth="4" />
-                    <circle cx="40" cy="40" r="36" fill="transparent" stroke="currentColor" className="text-tertiary" strokeDasharray="226" strokeDashoffset="20" strokeWidth="4" />
+                    <circle cx="40" cy="40" r="36" fill="transparent" stroke="currentColor" className="text-violet-300" strokeDasharray="226" strokeDashoffset="20" strokeWidth="4" />
                   </svg>
                   <span className="font-bold text-white">94%</span>
                 </div>
@@ -582,7 +708,7 @@ export default function AdminPage() {
                 <button type="button" className="text-xs tracking-widest uppercase transition-colors text-slate-500 hover:text-blue-400">System Status</button>
               </div>
             </footer>
-          </>
+          </div>
         ) : activeSection === 'customers' ? (
           <section className="admin-panel admin-panel--customers">
             <div className="admin-panel__head">
@@ -822,6 +948,134 @@ export default function AdminPage() {
               </div>
             </section>
           </>
+        ) : activeSection === 'database' ? (
+          <section className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <p className="text-[10px] font-black tracking-[0.3em] text-cyan-400 uppercase mb-2 block">Database Viewer</p>
+                <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Live database snapshot</h2>
+                <p className="mt-2 text-sm text-slate-400">Inspect tables, columns and recent rows directly from the admin panel.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => loadAll({ silent: true })}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-cyan-200 transition-colors hover:bg-cyan-500/20"
+              >
+                <RefreshCcw size={14} className={refreshing ? 'animate-spin' : ''} />
+                Refresh snapshot
+              </button>
+            </div>
+
+            <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+              <aside className="rounded-[2rem] border border-white/5 bg-slate-950/80 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <Database size={20} className="text-cyan-300" />
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.24em] text-slate-500">{databaseInfo?.database || 'novastore'}</p>
+                    <p className="text-2xl font-black text-white">{databaseInfo?.table_count || 0} tables</p>
+                  </div>
+                </div>
+                <div className="space-y-3 max-h-[36rem] overflow-y-auto pr-1">
+                  {(databaseInfo?.tables || []).map((table) => (
+                    <button
+                      key={table.name}
+                      type="button"
+                      className="w-full rounded-2xl border border-white/5 bg-slate-900/70 p-4 text-left transition-all hover:border-cyan-500/30 hover:bg-slate-900"
+                      onClick={() => setSelectedDate('')}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-black text-white">{table.name}</p>
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">{table.rows} rows • {table.engine || 'InnoDB'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-cyan-300">{table.size_mb} MB</p>
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">size</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                  {(databaseInfo?.tables || []).length === 0 ? <p className="text-sm text-slate-500">No tables found.</p> : null}
+                </div>
+              </aside>
+
+              <div className="space-y-5">
+                {(databaseInfo?.tables || []).map((table) => (
+                  <article key={table.name} className="rounded-[2rem] border border-white/5 bg-slate-950/80 p-6">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div>
+                        <p className="text-[10px] font-black tracking-[0.3em] text-cyan-400 uppercase mb-2 block">Table</p>
+                        <h3 className="text-2xl font-black text-white">{table.name}</h3>
+                        <p className="mt-1 text-sm text-slate-400">{table.rows} rows • {table.engine || 'InnoDB'} • {table.size_mb} MB</p>
+                      </div>
+                      <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Columns: {table.columns.length}</span>
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">Sample rows: {table.sample_rows.length}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 overflow-x-auto rounded-2xl border border-white/5">
+                      <table className="min-w-full text-left text-sm">
+                        <thead className="bg-slate-900/90 text-slate-400">
+                          <tr>
+                            <th className="px-4 py-3">Field</th>
+                            <th className="px-4 py-3">Type</th>
+                            <th className="px-4 py-3">Null</th>
+                            <th className="px-4 py-3">Key</th>
+                            <th className="px-4 py-3">Default</th>
+                            <th className="px-4 py-3">Extra</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {table.columns.map((column) => (
+                            <tr key={`${table.name}-${column.field}`} className="border-t border-white/5">
+                              <td className="px-4 py-3 font-semibold text-white">{column.field}</td>
+                              <td className="px-4 py-3 text-slate-300">{column.type}</td>
+                              <td className="px-4 py-3 text-slate-400">{column.null}</td>
+                              <td className="px-4 py-3 text-slate-400">{column.key || '-'}</td>
+                              <td className="px-4 py-3 text-slate-400">{column.default === null || column.default === undefined ? '-' : String(column.default)}</td>
+                              <td className="px-4 py-3 text-slate-400">{column.extra || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="mt-6 overflow-x-auto rounded-2xl border border-white/5">
+                      <table className="min-w-full text-left text-sm">
+                        <thead className="bg-slate-900/90 text-slate-400">
+                          <tr>
+                            {table.sample_rows[0]
+                              ? Object.keys(table.sample_rows[0]).map((field) => (
+                                  <th key={`${table.name}-${field}`} className="px-4 py-3">{field}</th>
+                                ))
+                              : <th className="px-4 py-3">No sample data</th>}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {table.sample_rows.length > 0 ? (
+                            table.sample_rows.map((row, rowIndex) => (
+                              <tr key={`${table.name}-row-${rowIndex}`} className="border-t border-white/5">
+                                {Object.values(row).map((value, valueIndex) => (
+                                  <td key={`${table.name}-row-${rowIndex}-value-${valueIndex}`} className="px-4 py-3 text-slate-300">
+                                    {value === null || value === undefined || value === '' ? '-' : String(value)}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))
+                          ) : (
+                            <tr className="border-t border-white/5">
+                              <td className="px-4 py-4 text-slate-500" colSpan={6}>No rows available.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
         ) : null}
       </main>
 

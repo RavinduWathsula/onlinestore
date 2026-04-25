@@ -5,7 +5,7 @@ import { useToast } from '../context/ToastContext';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
-  const { adminLogin, isAdmin } = useAuth();
+  const { adminLogin, isAdmin, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -13,6 +13,10 @@ export default function AdminLoginPage() {
 
   if (isAdmin) {
     return <Navigate to="/admin" replace />;
+  }
+
+  if (isAuthenticated && !isAdmin) {
+    return <Navigate to="/home" replace />;
   }
 
   const onSubmit = async (event) => {

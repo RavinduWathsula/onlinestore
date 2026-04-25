@@ -42,7 +42,7 @@ function StoreRoute({ children }) {
 function AdminRoute({ children }) {
   const { ready, isAuthenticated, isAdmin } = useAuth();
   if (!ready) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
   if (!isAdmin) return <Navigate to="/home" replace />;
   return children;
 }
@@ -55,7 +55,15 @@ export default function App() {
   const isAdminPage = location.pathname.startsWith('/admin');
 
   useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, [location.pathname]);
 
   if (!ready) {
@@ -69,9 +77,11 @@ export default function App() {
       {showStoreLayout ? <Navbar /> : null}
       <main
         className={
-          isAuthPage
-            ? 'relative z-10 min-h-[calc(100vh-170px)] p-0'
-            : 'relative z-10 mx-auto min-h-[calc(100vh-170px)] max-w-7xl px-4 py-8'
+          isAdminPage
+            ? 'relative z-10 p-0'
+            : isAuthPage
+              ? 'relative z-10 min-h-[calc(100vh-170px)] p-0'
+              : 'relative z-10 mx-auto min-h-[calc(100vh-170px)] max-w-7xl px-4 py-8'
         }
       >
         <Routes>

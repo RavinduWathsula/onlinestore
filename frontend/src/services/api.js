@@ -57,6 +57,7 @@ export const otpApi = {
 export const adminApi = {
   stats: () => api.get('/admin_stats.php'),
   users: () => api.get('/users.php'),
+  database: () => api.get('/admin_database.php'),
 };
 
 export default api;
